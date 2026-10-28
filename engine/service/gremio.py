@@ -548,8 +548,8 @@ class GremioMixin:
                   "gchat_toggle": lambda: self._guild_chat_toggle(hero),   
                   "gfcraft": lambda: self._fund_craft_toggle(hero),         # D-322: 🔓 / 🔒 the fund for the professions
                   "gflog": lambda: self._fund_log_view(hero),               # D-322: 📜 Quién usó qué
-                  "gleave": lambda: self._gremio_leave(hero, confirmed=False)}
-                  "gchat_toggle": lambda: self._guild_chat_toggle(hero) 
+                  "gleave": lambda: self._gremio_leave(hero, confirmed=False)}, 
+                  "gchat_toggle": lambda: self._guild_chat_toggle(hero), 
         if action_id in routes:
             return routes[action_id]()
         if action_id == "gleave!":
@@ -573,7 +573,9 @@ class GremioMixin:
             return prefixed[head]()
         return self._gremio_view(hero)
 
-    def _guild_chat_toggle(self,hero: Hero) -> View:data = self.store.get("hero", hero.id) or {} enabled = not bool(data.get(data.get"chat_notifications", True)) 
+    def _guild_chat_toggle(self,hero: Hero) -> View:
+        data = self.store.get("hero", hero.id) or {} 
+        enabled = not bool(data.get(data.get"chat_notifications", True)) 
         data["chat_notifications"] = enabled
         self.store.put("hero", hero.id, data)
         notice = self.texts.t("gremio.chat_notif_status", status="ON" if enabled else "OFF")
