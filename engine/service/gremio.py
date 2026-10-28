@@ -204,7 +204,7 @@ ARMORY_OUT_RE = re.compile(r"^/t_?(\d{1,2})(@\w+)?$")
 # Guild names follow the camp names (the camp takes the guild's name when it is founded). [ES] Igual que CAMP_NAME_RE.
 GREMIO_NAME_RE = re.compile(r"^[^\W_][\w '\-]{2,23}$", re.UNICODE)
 # Button ids (or prefixes) that _gremio_action routes (menus: they also work while busy). [ES] Si cambian, cambian los botones.
-GREMIO_ACTIONS = ("players", "pcard:", "gnew", "glist", "gcard:", "greq:", "greqs", "ginvite:", "gmsg", "gchat_tggle", "gfund", "gmeet", "gzones",
+GREMIO_ACTIONS = ("players", "pcard:", "gnew", "glist", "gcard:", "greq:", "greqs", "ginvite:", "gmsg", "gchat_toggle", "gfund", "gmeet", "gzones",
                   "gmeetset", "gfound", "gfoundx", "gleave", "gmem:", "goff:", "glead:", "glead!:", "gkick:", "gkick!:",
                   "garm",        # D-290: ⚔️ Armería
                   "ghelp:",      # D-289: 🤝 Hacer ayudante / ✖️ Quitar ayudante (the founder, from a member's card)
@@ -549,7 +549,6 @@ class GremioMixin:
                   "gfcraft": lambda: self._fund_craft_toggle(hero),         # D-322: 🔓 / 🔒 the fund for the professions
                   "gflog": lambda: self._fund_log_view(hero),               # D-322: 📜 Quién usó qué
                   "gleave": lambda: self._gremio_leave(hero, confirmed=False)}, 
-                  "gchat_toggle": lambda: self._guild_chat_toggle(hero), 
         if action_id in routes:
             return routes[action_id]()
         if action_id == "gleave!":
@@ -573,13 +572,13 @@ class GremioMixin:
             return prefixed[head]()
         return self._gremio_view(hero)
 
-    def _guild_chat_toggle(self,hero: Hero) -> View:
-        data = self.store.get("hero", hero.id) or {} 
-        enabled = not bool(data.get(data.get"chat_notifications", True)) 
+    def _guild_chat_toggle(self, hero: Hero) -> View:
+        data = self.store.get("hero", hero.id) or {}
+        enabled = not bool(data.get("chat_notifications", True))
         data["chat_notifications"] = enabled
         self.store.put("hero", hero.id, data)
         notice = self.texts.t("gremio.chat_notif_status", status="ON" if enabled else "OFF")
-            return self._guild_chat_view(hero, notice=notice)
+        return self._guild_chat_view(hero, notice=notice)
 
     def _gremio_view(self, hero: Hero, notice: str | None = None) -> View:
         """🛡️ Gremio before a camp: name, leader, founding and meeting point on top; members, fund and chat behind buttons (D-302).
@@ -850,10 +849,13 @@ class GremioMixin:
         
         body = [t.t("guildmenu.chat_intro", hours=int(self._gremio_cfg().get("chat_hours", 24))), ""]
         body += lines or [t.t("guildmenu.chat_none")]
-        body += ["", t.t("gremio.chat_hint"), status_text]
-        actions = [Action(id="gchat_toggle","gmsg", label=t.t("gremio.msg_button")),Action(id="gchat_toggle", label=t.t("gremio.chat_toggle_button")), Action(id="guild", label=t.t("menu.back"))]
+        body += ["", t.t("gremio.chat_hint")]
+        actions = [
+            Action(id="gmsg", label=t.t("gremio.msg_button")),
+            Action(id="gchat_toggle", label=t.t("gremio.chat_toggle_button")),
+            Action(id="guild", label=t.t("menu.back")),
+        ]
         return View(kind="guild_chat", title=t.t("guildmenu.chat_title"), body=body, actions=actions, notice=notice)
-
     def _gremio_none_view(self, hero: Hero, notice: str | None = None) -> View:
         """No guild yet: what a guild is, its price and cap, and 🛡️ Crear gremio / 🔎 Buscar gremio."""
         t = self.texts
