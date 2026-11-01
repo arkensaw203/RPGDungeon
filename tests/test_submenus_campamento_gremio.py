@@ -131,7 +131,7 @@ def test_the_guild_keeps_its_top_and_opens_members_funds_and_chat(service):
     assert not any(line.startswith("/m") for line in guild.body)                # the members: in 👥 Miembros
     assert "Últimos mensajes" not in body and "Fondo" not in body and "Armería" not in body
     armory = service.act("test:1", "garm")
-    assert "🗃️ 0/30 piezas" in armory.body and ids(armory) == ["guild"]          # ⚔️ its count, on its own screen
+    assert "🗃️ 0/30 piezas" in armory.body and ids(armory) == ["armlock", "guild"]   # ⚔️ its count; D-346: 🔒 the founder
 
 
 def test_members_list_the_members_and_who_waits_for_room(service, old_member_caps):     # D-327: a camp of 2, the old count
@@ -141,7 +141,7 @@ def test_members_list_the_members_and_who_waits_for_room(service, old_member_cap
     lines = [line for line in members.body if line.startswith("/m")]
     assert lines[0].startswith("/m1 👑 Lyra") and "Bram" in lines[1] and lines[2].startswith("/m3 ⏳ Cora")
     assert "⏳ Esperando lugar en el campamento (1/10):" in members.body and any("🤝 Asistentes" in line for line in members.body)   # D-304: asistentes
-    assert ids(members) == ["squads", "guild"] and len(members.actions) <= button_cap(members.kind)   # D-331: 🪖 Escuadras
+    assert ids(members) == ["squads", "staff", "guild"] and len(members.actions) <= button_cap(members.kind)   # D-331, D-346: 👔
     assert ids(service.text("test:1", "/m3"))[-1] == "gmembers"                   # a card goes back to 👥 Miembros
     assert "gmembers" in ids(service.act("test:3", "guild"))                     # who waits sees it too
     assert any("Cora" in line for line in service.act("test:3", "gmembers").body)
@@ -156,7 +156,7 @@ def test_join_requests_wait_in_members(service):
     guild = service.act("test:1", "guild")
     assert "🙋 1 solicitud espera: míralas en 👥 Miembros." in guild.body and "creqs" not in ids(guild)
     members = service.act("test:1", "gmembers")
-    assert ids(members) == ["creqs", "squads", "guild"]                           # D-331: 🪖 Escuadras before ↩️
+    assert ids(members) == ["creqs", "squads", "staff", "guild"]                  # D-331: 🪖; D-346: 👔 Encargados (founder)
     requests = service.act("test:1", "creqs")
     assert requests.kind == "camp_requests" and ids(requests)[-1] == "gmembers"
 
@@ -198,7 +198,7 @@ def test_chat_shows_the_last_day_capped_newest_last_with_the_write_button(servic
     cap = service.content.balance["gremio"]["chat_shown"]
     assert chat.kind == "guild_chat" and len(shown) == cap == 20
     assert shown[-1] == "💬 Bram: m29" and shown[0] == "💬 Bram: m10" and "💬 Bram: viejo" not in chat.body
-    assert ids(chat) == ["gmsg", "guild"] and any("le llega a todo tu gremio" in line for line in chat.body)
+    assert ids(chat) == ["gmsg", "gnote", "guild"] and any("le llega a todo tu gremio" in line for line in chat.body)   # D-346: 📣
     service.content.balance["gremio"]["chat_max_chars"] = 60                    # long chats: only what fits
     shown = [line for line in service.act("test:1", "gchat").body if line.startswith("💬 Bram:")]
     assert 1 <= len(shown) < 20 and shown[-1] == "💬 Bram: m29" and sum(len(line) + 1 for line in shown) <= 60

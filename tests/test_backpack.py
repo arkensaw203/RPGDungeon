@@ -263,7 +263,7 @@ def test_resources_screen_lists_materials_and_food_by_pages(service):
     service._save(hero)
     view = service.act("test:1", "resources")
     body = "\n".join(view.body)
-    assert view.kind == "resources" and [a.id for a in view.actions] == ["bag"]
+    assert view.kind == "resources" and [a.id for a in view.actions] == ["sellv", "bag"]   # D-346 (0.63): 💱 Vender
     assert "🪵 Madera 7/30  /01" in body and "Fibra 3/30  /03" in body                # D-338 (0.62): how many of how many
     assert "agrandar campamentos" not in body and "raciones" not in body      # D-243: what it is for, behind the code
     assert "Poción" not in body and "Espada" not in body           # potions and gear have their own buttons
@@ -275,7 +275,7 @@ def test_resources_screen_lists_materials_and_food_by_pages(service):
     service._save(hero)
     first = service.act("test:1", "resources")
     if len(many) > per:
-        assert [a.id for a in first.actions] == ["res:1", "bag"]
+        assert [a.id for a in first.actions] == ["res:1", "sellv", "bag"]         # D-346 (0.63): 💱 Vender
         second = service.act("test:1", "res:1")
         assert second.kind == "resources" and len(second.actions) <= 4
 

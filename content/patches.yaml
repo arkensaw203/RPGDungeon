@@ -1217,3 +1217,20 @@ v0_62_2:
     - "⛓️ Mail no longer exists: armor is leather, cloth or plate. It no longer drops as loot or comes out of chests."
     - "🦺 If you had mail pieces (worn or stored, also in the 🏛️ Market, in 📦 Deliveries or in the ⚔️ Armory), they are now leather, of the same slot and the same level; a ✒️ masterwork becomes the leather masterwork. They keep their 🔧 durability, their ✨ enchantment and their ✒️ signature. You lose nothing, and the game tells you what changed."
     - "🎓 The ⛓️ Mail specialization of 🦺 Leatherworking was retired: if you had it, pick another one for free in ⚒️ Professions → 🎓 Specialization. Its mastery stays saved."
+
+v0_63:
+  version: "0.63"
+  title: "💱 Lost Realms 0.63: vende desde cualquier lugar y 🔑 permisos en tu campamento"
+  title_en: "💱 Lost Realms 0.63: sell from anywhere and 🔑 permissions in your camp"
+  notes:
+    - "💱 Ya puedes vender sin viajar: 🎒 Mochila → 📦 Recursos → 💱 Vender (o /vender). Desde cualquier lugar te pagan el 30 % del precio, al momento; antes de vender ves cuánto te darían en los lugares mejores y confirmas. El equipo también se vende de lejos desde 🛡️ Equipo."
+    - "📈 Cuanto mejor el lugar, más pagan: 🔥 en una fogata el 50 % (como siempre), 🏪 en tu campamento con el Puesto de trueque el 60 % y 🏰 en tu castillo el 70 %. El 🏪 sigue comprando solo materiales (nunca comida) y tu 💱 Comercio suma en todas las ventas."
+    - "🔑 El fundador da permisos a los miembros: 🛡️ Gremio → 👥 Miembros → 👔 Encargados (solo lo ve el fundador). Toca el tipo de permiso (/en1 a /en4), sale la lista de miembros y con el código de cada uno (/em1) se lo das; el mismo código se lo quita. Son cuatro: 🏗️ Construcción (activar obras y elegir qué se construye), ⚒️ Oficios (usar el fondo para oficios con los oficios que elija), ⚔️ Armería y fondo (tomar de la armería cuando está cerrada y sacar del fondo con /fs07 lo que sobra después de las obras) y 👥 Gente y chat (aceptar e invitar gente y mandar 📣 anuncios)."
+    - "🔒 El fundador puede cerrar la ⚔️ Armería: entonces toman solo él y quien tiene ⚔️ (dejar piezas sigue abierto). Los 🤝 asistentes siguen como antes y quien sale del campamento pierde sus permisos. A cada uno le llega un aviso cuando le dan o le quitan un permiso."
+    - "👀 👔 Encargados le muestra al fundador lo que espera atención: solicitudes, quienes esperan lugar, obras sin materiales u obras sin activar. ❓ /d68 y /d69 lo explican."
+  notes_en:
+    - "💱 You can now sell without travelling: 🎒 Backpack → 📦 Resources → 💱 Sell (or /sell). From anywhere you get 30 % of the price, at once; before selling you see what the better places would give you and you confirm. Gear can also be sold from afar from 🛡️ Gear."
+    - "📈 The better the place, the more they pay: 🔥 at a campfire 50 % (as always), 🏪 at your camp with the Trading Post 60 % and 🏰 at your castle 70 %. The 🏪 still only buys materials (never food) and your 💱 Trade adds to every sale."
+    - "🔑 The founder gives permissions to the members: 🛡️ Guild → 👥 Members → 👔 Managers (only the founder sees it). Tap the permission type (/en1 to /en4), the list of members comes up and with each one's code (/em1) you give it; the same code takes it away. There are four: 🏗️ Building (activate works and choose what is built), ⚒️ Professions (use the fund for professions with the professions they choose), ⚔️ Armory and fund (take from the armory while it is closed and take out of the fund with /fs07 what is left after the works) and 👥 People and chat (accept and invite people and send 📣 announcements)."
+    - "🔒 The founder can close the ⚔️ Armory: then only they and whoever has ⚔️ take (leaving pieces stays open). 🤝 Assistants stay as before and whoever leaves the camp loses their permissions. Everyone gets a notice when a permission is given or taken."
+    - "👀 👔 Managers shows the founder what needs attention: requests, people waiting for room, works without materials or works not activated. ❓ /d68 and /d69 explain it."

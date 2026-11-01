@@ -68,6 +68,11 @@ Depende de: engine.core, engine.hero (y engine.hero.gear: equipo, D-77), engine.
     engine.service.retired_gear (RetiredGearMixin: sin malla, D-342 y D-343: el cambio de una sola vez de cada pieza de malla por
     su gemela de cuero, que corre en __init__, y su aviso, que sale en _settle)
     engine.service.telemetry (TelemetryMixin y tracked: los contadores del informe de jugadores cada 3 horas, D-341 y D-344)
+    engine.service.sell_tiers (SellTiersMixin: la 💱 venta por niveles desde cualquier lugar, D-346 y D-347, 0.63; lo usan
+    _sell_price, _shop_sell_view, _sell, _sell_code, _camp_sell, _service_uses, _item_view, _sell_gear y _resources_view)
+    engine.service.permissions (PermissionsMixin: los 🔑 permisos del campamento por código, la ⚔️ Armería que se cierra,
+    sacar del 💰 fondo y los 📣 anuncios, D-346 y D-347, 0.63; _camp_can reemplaza a _camp_manager en las obras, el
+    territorio y la gente; _fund_pool recibe el oficio en _recipe_view y _make)
 Lo usan: adapters/telegram/bot.py, adapters/cli/play.py, tests/test_service.py
 Eventos que publica: HeroCreated, TravelStarted, TravelArrived, ZoneDiscovered, CombatStarted,
     HitReceived, HeroDowned, CombatEnded, BossDefeated, ItemCrafted y ProfessionRankUp (oficios, D-109)
@@ -215,6 +220,9 @@ Datos de los que es dueño: espacios "hero", "combat", "zone", "pending" y "meta
     "<tramo>:<cuenta>") es de engine/service/telemetry.py (TelemetryMixin, ver su encabezado): act() y text() llevan el
     decorador tracked, _save llama a _tel_saved, tick() a _tel_tick y __init__ a _tel_listen; solo cuenta y nunca cambia una
     jugada. Nada nuevo en Hero.
+    D-346 y D-347 (31-oct-2026, 0.63): el registro "camp" suma "perms", "armory_lock" y "notice" (engine/service/permissions.py,
+    ver su encabezado); el "fund_log" del fondo suma la línea "take". La venta por niveles no guarda nada nuevo
+    (engine/service/sell_tiers.py). Nada nuevo en Hero.
 Reglas que nunca se rompen:
     1. Toda orden empieza por _settle(): ningún temporizador se pierde ni se duplica.
     2. En combate no se viaja ni se explora; viajando no se explora (una actividad a la vez).
@@ -288,6 +296,13 @@ Si cambias esto, revisa:
     - Números: balance.yaml (explore, regen, hero, travel, guardian)
     - Comercio (D-116): _merchant_sale suma su beneficio (+20 % al rango 100) y su experiencia en _sell, _camp_sell y
       _sell_gear; no toca el combate (professions.trade_xp_per_coin)
+    - 💱 Venta por niveles (D-346, D-347, 0.63): balance.yaml shop.sell_tiers; lo que paga cada lugar sale de sell_tiers.py
+      (_sale_total, _sale_tier_here); "fire" tiene que ser igual a shop.sell_ratio; botones "sellv", "sellok:", "sellgq:",
+      "sellgok:" (SELL_ACTIONS); /v02, /vender y /sell en cualquier lugar. Pruebas: tests/test_venta_y_permisos.py
+    - 🔑 Permisos (D-346, D-347, 0.63): _camp_can (permissions.py) decide quién activa obras y agranda el territorio ("build") y
+      quién acepta gente ("people"); los botones PERM_ACTIONS (👔 Encargados: "staff", "stf:"), los códigos /en, /em, /pc,
+      /fs y /permiso, los atajos /encargados y /permisos y el modo "gnote" de _name_camp (📣). Pruebas:
+      tests/test_venta_y_permisos.py
     - ✒️ Obra maestra (D-116): balance.yaml masterwork; las piezas "<id>_obra" que arma engine/professions/rules.py
       masterwork_items al cargar; el sorteo en _make (_masterwork_chance: la 🪑 Carpintería con su perk, los demás con
       masterwork.base_chance), la firma en Hero.gear_signatures, la marca ✒️ en _gear_name, _worn_view y _gear_view, la
@@ -863,6 +878,9 @@ from engine.service.raid_difficulty import RaidDifficultyMixin   # D-337 (0.61):
 from engine.service.backpack import PBAG_ACTIONS, PBAG_CODE_RE, BackpackMixin   # D-338, D-339 (0.62): 🎒 the backpack by types
 from engine.service.retired_gear import RetiredGearMixin   # D-342, D-343 (0.62.2): ⛓️ → 🦺 no more mail (the one-time change)
 from engine.service.telemetry import TelemetryMixin, tracked   # D-341, D-344: 📊 the light play telemetry of the team's reports
+from engine.service.sell_tiers import SELL_ACTIONS, SellTiersMixin   # D-346, D-347 (0.63): 💱 selling by tiers, from anywhere
+from engine.service.permissions import (PERM_ACTIONS, PERM_CODE_RE, PERM_CRAFT_RE, FUND_TAKE_RE,   # D-346, D-347 (0.63): 🔑 permissions
+                                       STAFF_MEMBER_RE, STAFF_TYPE_RE, PermissionsMixin)   # 👔 Encargados: /en1 and /em1
 from engine.world import raids as raid_rules
 from engine.world import enemy_camps as camp_rules
 from engine.world import dungeons as dungeon_rules      # D-164, D-170, D-171: solo dungeons
@@ -904,6 +922,9 @@ COMMANDS.update({"/reparar": "rpr", "/repair": "rpr"})               # D-333 (0.
 COMMANDS.update({"/pedidos": "cord", "/orders": "cord"})             # D-335 (0.59): 📜 Pedidos de fabricación (craft_orders.py)
 COMMANDS.update({"/caidos": "fallen", "/fallen": "fallen"})         # D-336 (0.60): 🪦 Salón de los caídos (engine/service/permadeath.py)
 COMMANDS.update({"/mochilas": "pbags", "/backpacks": "pbags"})      # D-338, D-339 (0.62): 🎒 Mochilas de oficio (engine/service/backpack.py)
+COMMANDS.update({"/vender": "sellv", "/sell": "sellv"})            # D-346, D-347 (0.63): 💱 Vender from anywhere (sell_tiers.py)
+COMMANDS.update({"/encargados": "staff", "/managers": "staff", "/permisos": "staff", "/permissions": "staff",   # D-346, D-347 (0.63):
+                 "/permiso": "staff", "/permission": "staff"})             # 👔 Encargados, only the founder (permissions.py)
 # D-250: typed commands that carry words after them ("/greet Bram", "/help energy"): the English word -> the one the
 # handlers read. [ES] Los atajos con texto detrás: la palabra en inglés se cambia por la española antes de atenderlos.
 TYPED_ALIASES = {"/greet": "/saludar", "/toast": "/brindar", "/journal": "/diario", "/help": "/dudas", "/faq": "/dudas"}
@@ -1064,7 +1085,8 @@ def _in_player_language(method: Callable[..., Any]) -> Callable[..., Any]:
 class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMixin, LadderMixin, SquadsMixin, GroupMissionMixin,
                   RepairMixin, WorldTimeMixin,
                   CraftOrderMixin, PermadeathMixin,
-                  RaidDifficultyMixin, BackpackMixin, RetiredGearMixin, TelemetryMixin):
+                  RaidDifficultyMixin, BackpackMixin, RetiredGearMixin, TelemetryMixin,
+                  SellTiersMixin, PermissionsMixin):
     """The engine's facade for every client (the story and roleplay part lives in engine/service/story.py, D-117; the
     guided path in engine/service/guide.py, D-190/D-193).
 
@@ -1210,8 +1232,18 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
                 typed = self._place_code(hero, int(code.group(1)))
             elif resource:                               # D-243: /07 = what that resource is for
                 typed = self._resource_detail(hero, int(resource.group(1)))
-            elif SELL_CODE_RE.match(text.strip().lower()):      # D-259: /v02 = sell all of that to the Claro trader
-                typed = self._sell_code(hero, int(SELL_CODE_RE.match(text.strip().lower()).group(1)))
+            elif SELL_CODE_RE.match(text.strip().lower()) and self.store.get("combat", hero.id) is None:   # D-259: /v02 sells all of
+                typed = self._sell_code(hero, int(SELL_CODE_RE.match(text.strip().lower()).group(1)))   # that (D-346: from anywhere)
+            elif STAFF_TYPE_RE.match(low) and self.store.get("combat", hero.id) is None:    # D-346: /en2 = a type of 👔 Encargados
+                typed = self._staff_type_code(hero, int(STAFF_TYPE_RE.match(low).group(1)))
+            elif STAFF_MEMBER_RE.match(low) and self.store.get("combat", hero.id) is None:  # D-346: /em3 = give it to (or take it from) them
+                typed = self._staff_member_code(hero, int(STAFF_MEMBER_RE.match(low).group(1)))
+            elif PERM_CODE_RE.match(low) and self.store.get("combat", hero.id) is None:     # D-346: /permiso 12345678 = what they have
+                typed = self._perm_code(hero, PERM_CODE_RE.match(low).group(1))
+            elif PERM_CRAFT_RE.match(low) and self.store.get("combat", hero.id) is None:    # D-346: /pc3 = ⚒️ that profession on/off
+                typed = self._perm_craft_code(hero, int(PERM_CRAFT_RE.match(low).group(1)))
+            elif FUND_TAKE_RE.match(low) and self.store.get("combat", hero.id) is None:     # D-346: /fs07 = take that from the 💰 fund
+                typed = self._fund_take_code(hero, int(FUND_TAKE_RE.match(low).group(1)))
             elif self._prof_code(text):                  # D-257: /minero = everything about that profession
                 typed = self._prof_detail_view(hero, self._prof_code(text))
             elif self.store.get("combat", hero.id) is None and PLAYER_CODE_RE.match(low):     # D-265: /j2 = a player's card
@@ -2615,6 +2647,10 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
             return self._pspec_action(hero, action_id)
         if action_id == "guide":                        # D-193: 🧭 Camino guiado (/guia); a menu, also while busy
             return self._guide_view(hero)
+        if action_id.startswith(SELL_ACTIONS):          # D-346 (0.63): 💱 Vender from anywhere (a menu: also while busy)
+            return self._sale_action(hero, action_id)
+        if action_id.startswith(PERM_ACTIONS):          # D-346 (0.63): 👔 Encargados, the camp's permissions (menus: also busy)
+            return self._perm_action(hero, action_id)
         if action_id.startswith(GREMIO_ACTIONS) or action_id == "gleave!":     # D-265/D-269: 👥 Jugadores and the guild (menus)
             return self._gremio_action(hero, action_id)
         in_claro = mapgen.is_bonfire(hero.x, hero.y) and not hero.activity
@@ -2675,20 +2711,20 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
                 return self._main_view(hero, notice=t.t("shop.only_in_claro"))
             return self._claro_view(hero, notice=t.t("claro.no_growth"))
         if action_id.startswith("sellg:"):
-            return self._sell_gear(hero, action_id[6:], in_claro or self._sells_gear_here(hero))    # D-101: 🔨 Herrería
-        if action_id in ("shop", "inn", "shop:buy", "shop:sell") or action_id.startswith(("buy:", "sell:")):
+            return self._sell_gear(hero, action_id[6:])    # D-101: 🔨 Herrería; D-346: elsewhere it asks first (remote)
+        if action_id == "shop:sell" or action_id.startswith("sell:"):    # D-259: 💱 Vender; D-346 (0.63): from anywhere
+            if action_id == "shop:sell":
+                return self._shop_sell_view(hero)
+            return self._sell(hero, action_id[5:])
+        if action_id in ("shop", "inn", "shop:buy") or action_id.startswith("buy:"):
             if not in_claro:
                 return self._main_view(hero, notice=t.t("shop.only_in_claro"))
             if action_id == "shop":
                 return self._shop_view(hero)
             if action_id == "shop:buy":                 # D-259: 🛒 Comprar
                 return self._shop_buy_view(hero)
-            if action_id == "shop:sell":                # D-259: 💱 Vender
-                return self._shop_sell_view(hero)
             if action_id.startswith("buy:"):
                 return self._buy(hero, action_id[4:])
-            if action_id.startswith("sell:"):
-                return self._sell(hero, action_id[5:])
             return self._rest(hero)
         if action_id.startswith("use:"):
             return self._use_out_of_combat(hero, action_id[4:])
@@ -4211,12 +4247,10 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
                 and self.content.items[i].get("code")}
 
     def _sell_price(self, item_id: str) -> int:
-        """What the trader pays for one unit before 💱 Comercio: half its price (shop.sell_ratio), at least 1; potions and
-        remedies, a quarter (shop.remedy_sell_ratio, D-306.5: little, until there is a player market)."""
-        item = self.content.items[item_id]
-        shop = self.content.balance["shop"]
-        ratio = shop.get("remedy_sell_ratio", shop["sell_ratio"]) if item.get("kind") in REMEDY_KINDS else shop["sell_ratio"]
-        return max(1, int(item.get("price", 1) * ratio))
+        """What the campfire trader pays for one unit before 💱 Comercio: half its price (shop.sell_ratio), at least 1; potions
+        and remedies, a quarter (shop.remedy_sell_ratio, D-306.5: little, until there is a player market). D-346 (0.63): the
+        campfire's tier of the sale by tiers (sell_tiers.py _sale_price "fire"); the other places scale it."""
+        return self._sale_price(item_id, "fire")
 
     def _sell_all_common(self, hero: Hero) -> dict[str, int]:
         """The common gathered materials "💱 Vender materiales" sells at once (never food, refined goods or rares, D-93, D-109)."""
@@ -4235,32 +4269,49 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         comida, ni lo refinado, ni lo raro). ↩️ Volver al mercader. D-306.5 (0.43): también las 🧪 pociones y los remedios de
         la mochila (no los del cinturón), a un cuarto de su precio (/v61 a /v66), con una línea que lo explica.
         La llaman: 💱 Vender del mercader, los códigos /vNN y _sell. Si cambia, afecta: tests/test_shop.py.
+        D-346 y D-347 (0.63, la venta por niveles): la misma pantalla sirve en cualquier lugar (💱 Vender de 📦 Recursos, /vender):
+        arriba dice dónde vendes y cuánto pagan aquí (🔥 fogata 50 %, 🏪 tu campamento 60 %, 🏰 tu castillo 70 % o 🎒 a distancia
+        30 %: sell_tiers.py _sale_place), cada línea con el precio de aquí (si esa cosa no la compra este lugar, lleva la marca
+        🎒 de la venta a distancia: en tu campamento, la comida y las pociones) y abajo la escalera 📈 de dónde rinde más
+        (_sale_ladder_lines). A distancia, el código y 💱 Vender materiales preguntan antes (_sell_confirm_view). ↩️ Volver va al
+        mercader en la fogata y a 📦 Recursos en otro lado.
         """
         t = self.texts
         goods = self._sellable(hero)
-        body = [t.t("shop.sell_intro"), t.t("hero.gold_line", gold=self._money(hero.gold)), ""]
+        place = self._sale_place(hero)                 # D-346: 🔥 fogata, 🏪 camp, 🏰 castle or 🎒 anywhere
+        body = [t.t("shop.sell_intro") if place == "fire" else t.t(f"sale.intro.{place}", pct=self._sale_pct(place)),
+                t.t("hero.gold_line", gold=self._money(hero.gold)), ""]
         for item_id, n in sorted(goods.items(), key=lambda kv: int(self.content.items[kv[0]]["code"])):
-            item, price = self.content.items[item_id], self._sell_price(item_id)
-            body.append(t.t("shop.sell_item_line", emoji=item["emoji"], item=t.t(item["name_key"]), n=n, price=self._money(price),
-                            total=self._money(price * n), code=f"{int(item['code']):02d}"))
+            item, tier = self.content.items[item_id], self._sale_tier_here(hero, item_id)
+            if tier == "fire":                          # the campfire: the line of always, with the unit price
+                price = self._sale_price(item_id, tier)
+                body.append(t.t("shop.sell_item_line", emoji=item["emoji"], item=t.t(item["name_key"]), n=n,
+                                price=self._money(price), total=self._money(price * n), code=f"{int(item['code']):02d}"))
+                continue
+            mark = t.t("sale.remote_mark") if tier == "remote" and place != "remote" else ""   # D-346: the 🏪 does not buy it
+            body.append(t.t("sale.item_line", emoji=item["emoji"], item=t.t(item["name_key"]), n=n,
+                            total=self._money(self._sale_total(item_id, n, tier)), mark=mark, code=f"{int(item['code']):02d}"))
         if not goods:
             body.append(t.t("shop.sell_none"))
-        if any(self.content.items[i].get("kind") in REMEDY_KINDS for i in goods):     # D-306.5: 🧪 a little, belt kept
-            body += ["", t.t("shop.remedy_line", pct=round(100 * float(self.content.balance["shop"].get("remedy_sell_ratio", 0))))]
+        remedy = next((i for i in goods if self.content.items[i].get("kind") in REMEDY_KINDS), None)
+        if remedy:                                      # D-306.5: 🧪 a little, belt kept (D-346: at the tier of the place)
+            body += ["", t.t("shop.remedy_line", pct=round(100 * self._sale_ratio(remedy, self._sale_tier_here(hero, remedy))))]
+        if place == "remote" and goods:
+            body.append(t.t("sale.remote_hint"))        # D-346: the code asks first, with the better places
+        body += [""] + self._sale_ladder_lines(place)   # D-346: 📈 the levels of importance
         actions = []
         common = self._sell_all_common(hero)
         if common:
-            total = sum(self._sell_price(i) * n for i, n in common.items())
+            total = sum(self._sale_total(i, n, self._sale_tier_here(hero, i)) for i, n in common.items())
             body += ["", t.t("shop.sell_all_line")]
             actions.append(Action(id="sell:all", label=t.t("shop.sell_all_button", total=self._money(total))))
-        actions.append(Action(id="shop", label=t.t("menu.back")))
+        actions.append(Action(id="shop" if place == "fire" else "res:0", label=t.t("menu.back")))
         return View(kind="shop_sell", title=t.t("shop.sell_title"), body=body, actions=actions, notice=notice)
 
     def _sell_code(self, hero: Hero, code: int) -> View:
-        """/v02: sell every unit of the thing with that code to the Claro trader (D-259)."""
+        """/v02: sell every unit of the thing with that code (D-259); since D-346, from anywhere at the tier of the place
+        (a remote sale asks first, with what it would pay at each better place)."""
         t = self.texts
-        if not mapgen.is_bonfire(hero.x, hero.y) or hero.activity:
-            return self._main_view(hero, notice=t.t("shop.only_in_claro"))
         item_id = next((i for i in self._sellable(hero) if int(self.content.items[i]["code"]) == code), None)
         if item_id is None:
             return self._shop_sell_view(hero, notice=t.t("shop.no_code", code=f"/v{code:02d}"))
@@ -4312,17 +4363,28 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
             return {}
         return dict(record.get("bought", {}))
 
-    def _sell(self, hero: Hero, item_id: str, every: bool = False) -> View:
-        """Sell to the Claro trader: "all" (the common materials at once), one unit, or every unit of one thing (/v02)."""
+    def _sell(self, hero: Hero, item_id: str, every: bool = False, confirmed: bool = False) -> View:
+        """Sell: "all" (the common materials at once), one unit, or every unit of one thing (/v02), at the tier of the place.
+
+        [ES] Qué hace: vende al 🛒 mercader de la fogata como antes; desde la 0.63 (D-346, D-347) también en cualquier lugar: el
+        precio sale del nivel del lugar de cada cosa (sell_tiers.py _sale_tier_here: 🔥 fogata, 🏪 tu campamento, 🏰 tu castillo o
+        🎒 a distancia). Una venta a distancia sin confirmar muestra antes la confirmación con los precios de los lugares mejores
+        (_sell_confirm_view; "sellok:" confirma). El 💱 Comercio suma siempre (_merchant_sale: "barter" en tu campamento, "goods"
+        en los demás). La llaman: "sell:all", "sell:<objeto>", "sellok:" y /v02 (_sell_code). Si cambia, afecta:
+        tests/test_venta_y_permisos.py, tests/test_fogata_ordenada.py y tests/test_backpack.py."""
         t = self.texts
         if item_id == "all":
             sold = self._sell_all_common(hero)
             if not sold:
                 return self._shop_sell_view(hero)
-            total = sum(self._sell_price(i) * n for i, n in sold.items())
+            tiers = {i: self._sale_tier_here(hero, i) for i in sold}
+            if not confirmed and "remote" in tiers.values():     # D-346: a remote sale asks first
+                return self._sell_confirm_view(hero, sold, "sellok:all", "sellv")
+            total = sum(self._sale_total(i, n, tiers[i]) for i, n in sold.items())
             for i in sold:
                 del hero.backpack[i]
-            total, trade = self._merchant_sale(hero, total)     # D-116: 💱 Comercio
+            sale = self._sale_kind("", next(iter(tiers.values())))
+            total, trade = self._merchant_sale(hero, total, sale)     # D-116: 💱 Comercio (D-141: 📦 or 🐪 in your camp)
             hero.gold += total
             lines = [t.t("shop.sold_all", items=self._item_list(sold), total=self._money(total))] + trade
             lines += self._story_event(hero, "sell", n=sum(sold.values()), coins=total)          # D-117
@@ -4330,11 +4392,14 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         if item_id not in self._sellable(hero):
             return self._shop_sell_view(hero)
         n = hero.backpack[item_id] if every else 1
-        price = self._sell_price(item_id) * n
+        tier = self._sale_tier_here(hero, item_id)
+        if tier == "remote" and not confirmed:          # D-346: a remote sale asks first, with the better places
+            return self._sell_confirm_view(hero, {item_id: n}, f"sellok:{item_id}", "sellv")
+        price = self._sale_total(item_id, n, tier)
         hero.backpack[item_id] -= n
         if hero.backpack[item_id] <= 0:
             del hero.backpack[item_id]
-        price, trade = self._merchant_sale(hero, price)         # D-116: 💱 Comercio
+        price, trade = self._merchant_sale(hero, price, self._sale_kind(item_id, tier))   # D-116: 💱 Comercio
         hero.gold += price
         lines = [t.t("shop.sold_all", items=self._item_list({item_id: n}), total=self._money(price))] + trade
         lines += self._story_event(hero, "sell", n=n, coins=price)                             # D-117
@@ -4664,6 +4729,8 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
             return self._gremio_text(hero, pending["mode"], name)
         if pending.get("mode") == "sqname":                # D-331 (0.55): the name a 🎖️ chief gives their squad
             return self._squad_name_text(hero, name)
+        if pending.get("mode") == "gnote":                 # D-346 (0.63): the text of a 📣 announcement (permissions.py)
+            return self._gnote_post(hero, name)
         if pending.get("mode") == "found":                 # D-269: nobody founds alone any more (an old prompt founds nothing)
             self.store.delete("camp_naming", hero.id)
             return self._camp_here_view(hero, notice=t.t("camps.found_by_guild"))
@@ -4776,14 +4843,15 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
 
         [ES] Qué hace: responde una solicitud para entrar al campamento. Desde la 0.39 también la responde un ayudante del
         fundador (D-289). La llaman: el aviso de la solicitud y 🙋 Solicitudes de 🛡️ Gremio. Si cambia, afecta:
-        tests/test_camps.py y tests/test_ayudantes.py."""
+        tests/test_camps.py y tests/test_ayudantes.py. D-346 (0.63): también quien tiene 👥 Gente y chat (_camp_can "people"),
+        que además recibe el pedido (_camp_managers)."""
         t = self.texts
         parts = action_id.split(":")
         if len(parts) < 5 or parts[-1] not in ("y", "n"):
             return self._main_view(hero)
         key, visitor, choice = f"{parts[1]}:{parts[2]}", ":".join(parts[3:-1]), parts[-1]
         camp = self.store.get("camp", key)
-        if not camp or not self._camp_manager(camp, hero.id) or visitor not in camp.get("requests", []):
+        if not camp or not self._camp_can(camp, hero.id, "people") or visitor not in camp.get("requests", []):
             return self._main_view(hero, notice=t.t("camps.already_answered"))
         camp["requests"].remove(visitor)
         data = self.store.get("hero", visitor)
@@ -4808,6 +4876,7 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         if hero.id in camp["members"]:
             camp["members"].remove(hero.id)
             camp["helpers"] = [h for h in camp.get("helpers") or [] if h != hero.id]    # D-289: a helper who leaves stops being one
+            self._perm_clear(camp, hero.id)             # D-346: and its 🔑 permissions
             self.store.put("camp", key, camp)
             self._tell_waiting_room(key)                # D-294: a place opened for who waits in the guild
         hero.camp = None
@@ -5389,7 +5458,7 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         if not candidates:
             return View(kind="camp_grow", title=t.t("territory.title"), body=body + [t.t("camps.grow_blocked")],
                         actions=[back], notice=notice)
-        manager = self._camp_manager(camp, hero.id)
+        manager = self._camp_can(camp, hero.id, "build")
         body += [t.t("territory.cost", items=self._grow_cost_text(len(zones))), t.t("territory.hint")]
         if not manager:                        # D-304: the founder or a 🤝 assistant chooses; everyone sees
             body.append(t.t("territory.managers_only"))
@@ -5432,7 +5501,7 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         camp = self.store.get("camp", key)
         if not camp or hero.id not in camp["members"] or hero.activity:
             return self._camp_here_view(hero)
-        if not self._camp_manager(camp, hero.id):      # D-304: the founder or a 🤝 assistant chooses where
+        if not self._camp_can(camp, hero.id, "build"):      # D-304: the founder or a 🤝 assistant chooses where
             return self._grow_view(hero, notice=t.t("territory.managers_only"))
         if self._camp_starving(camp):          # D-93: with an empty pantry the camp does not grow
             return self._improve_view(hero, notice=t.t("pantry.grow_famine"))
@@ -5911,7 +5980,7 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         guild = self.store.get("guild", key)
         here = (hero.x, hero.y) == (camp["x"], camp["y"]) and not waiting
         founder = camp.get("founder_id") == hero.id
-        manager = self._camp_manager(camp, hero.id)
+        manager = self._camp_can(camp, hero.id, "people")
         n, cap = len(camp["members"]), self._members_cap(camp)
         actions = [Action(id="gmembers", label=t.t("guildmenu.members_button", n=n, cap=cap)),    # D-302: 👥 Miembros
                    Action(id="gfunds", label=t.t("guildmenu.funds_button")),     # D-302: 💰 Fondos del campamento
@@ -5946,6 +6015,9 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
                 body.append(t.t("guild.top"))
         if waiting:                                    # D-294: in the guild, waiting for room in the camp
             body[:0] = [t.t("waiting.you", camp=camp["name"]), ""]
+        note = self._gnote_lines(camp)                 # D-346 (0.63): 📣 the pinned announcement, on top
+        if note:
+            body[:0] = note + [""]
         requests = camp.get("requests") or []
         if manager and requests:                       # D-289, D-302: 🙋 the requests wait in 👥 Miembros
             body += ["", t.t("guildmenu.requests_line", n=len(requests))]
@@ -6953,7 +7025,7 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         catalog = self._upgrade_catalog()
         record = self._upgrades(key)
         perks = self._camp_perks(camp, hero)                   # D-115: 🗿 Cantería and 🏗️ Construcción lower the works
-        manager = self._camp_manager(camp, hero.id)
+        manager = self._camp_can(camp, hero.id, "build")
         built = [uid for uid in catalog if uid in record["built"]]
         works = self._active_works(camp, record)
         reach = len(built) + len(record.get("building") or {}) + len(self._open_works(camp, record))   # D-287: this level only
@@ -7033,7 +7105,7 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         t = self.texts
         catalog = self._upgrade_catalog()
         record = self._upgrades(key)
-        manager = self._camp_manager(camp, hero.id)
+        manager = self._camp_can(camp, hero.id, "build")
         entries = self._works_entries(hero, camp, record)
         if not entries:
             return self._upgrades_view(hero, notice=notice or t.t("upgrades.no_works" if manager else "services.none_active"))
@@ -7133,7 +7205,7 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         if uid not in self._active_works(camp, record):
             if uid not in self._open_works(camp, record):        # built, in progress or not for this level (D-287)
                 return self._work_back(hero, uid, back)
-            if not self._camp_manager(camp, hero.id):            # D-291: the founder or a helper activates it first
+            if not self._camp_can(camp, hero.id, "build"):            # D-291: the founder or a helper activates it first
                 return self._work_back(hero, uid, back, notice=t.t("services.not_active", name=self._upgrade_name(uid)))
             activated = True
             self._freeze_mult(record, uid)                       # D-295: its price is fixed from now on
@@ -7439,6 +7511,8 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         que tenga (_feed_works) y a cada miembro le llega "🏗️ {quién} activó {obra}: falta …". No hay tope de obras activas.
         Un miembro común no puede (aviso). La llaman: ▶️ Activar de cada tipo de 🏘️ Servicios ("upact:<id>") y de 🔨 Obras
         ("upact:<id>:w"). Si cambia, afecta: tests/test_servicios_por_tipo.py y tests/test_ayudantes.py.
+        D-346 (0.63): también quien tiene el permiso 🏗️ Construcción (permissions.py _camp_can "build"); lo mismo en ⏹️ Quitar,
+        las obras sin activar de las listas, activar al aportar (_give_to_work) y 🗺️ Agrandar territorio.
         """
         here = self._upgrades_here(hero)
         if not here:
@@ -7450,7 +7524,7 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         if uid not in catalog:
             return self._services_view(hero)
         name = self._upgrade_name(uid)
-        if not self._camp_manager(camp, hero.id):
+        if not self._camp_can(camp, hero.id, "build"):
             return self._work_back(hero, uid, back, notice=t.t("services.only_managers"))
         if uid in self._active_works(camp, record):
             return self._work_back(hero, uid, back, notice=t.t("services.already_active", name=name))
@@ -7480,7 +7554,7 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         t = self.texts
         record = self._upgrades(key)
         name = self._upgrade_name(uid)
-        if not self._camp_manager(camp, hero.id):
+        if not self._camp_can(camp, hero.id, "build"):
             return self._work_back(hero, uid, "type", notice=t.t("services.only_managers"))
         if uid not in (record.get("active") or []) or self._work_started(record, uid):
             return self._work_back(hero, uid, "type", notice=t.t("services.cannot_stop", name=name))
@@ -7503,7 +7577,7 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         fix = [("fix", "defense")] if record.get("damage") else []      # D-115: 🛠️ repair the defenses first
         active = [("work", uid) for uid in self._active_works(camp, record)]
         available = ([("open", uid) for uid in self._available_works(camp, record)]
-                     if self._camp_manager(camp, hero.id) else [])      # D-291: only they see what is not active yet
+                     if self._camp_can(camp, hero.id, "build") else [])      # D-291: only they see what is not active yet
         keep = [("keep", "upkeep")] if self._upkeep_open(record) else []     # D-306.5: 🧱 the work that repeats
         return fix + active + available + keep + [("furn", fid) for fid in self._furniture_to_place(hero, record)]
 
@@ -7606,7 +7680,7 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         camp, key = here
         t = self.texts
         record = self._upgrades(key)
-        manager = self._camp_manager(camp, hero.id)
+        manager = self._camp_can(camp, hero.id, "build")
         rows = self._kinds_summary(camp, record, manager)
         body = [t.t("services.intro"), ""]
         actions = []
@@ -7647,11 +7721,12 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         elif kind == "oficio":
             trade = self._camp_service(camp, "sell_ratio")
             if trade:
+                tier = "castle" if self._camp_stage_id(int(camp.get("level", 1))) == "castillo" else "camp"
                 lines.append(t.t("upgrades.trade_line"))
-                sellable = {i: n for i, n in hero.backpack.items()
-                            if n > 0 and self.content.items.get(i, {}).get("kind") == "material" and not self.content.items[i].get("food")}
+                lines.append(t.t(f"sale.barter_line.{tier}", pct=self._sale_pct(tier), castle=self._sale_pct("castle")))   # D-346
+                sellable = self._sell_all_common(hero)     # D-346: what 💱 sells (never food, refined goods or rares)
                 if sellable:
-                    total = sum(max(1, int(self.content.items[i]["price"] * trade["sell_ratio"])) * n for i, n in sellable.items())
+                    total = sum(self._sale_total(i, n, tier) for i, n in sellable.items())
                     lines.append(t.t("shop.sell_line", items=self._item_list(sellable), total=self._money(total)))
                     actions.append(Action(id="csell", label=t.t("shop.sell_all_button", total=self._money(total))))
                 else:
@@ -7704,7 +7779,7 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
 
     def _type_page_of(self, hero: Hero, camp: dict[str, Any], record: dict[str, Any], kind: str, uid: str) -> int:
         """The page of a type's screen where a work is listed (0 if it is no longer there)."""
-        manager = self._camp_manager(camp, hero.id)
+        manager = self._camp_can(camp, hero.id, "build")
         pages = self._type_pages(self._type_entries(camp, record, kind, manager), record, manager,
                                  len(self._service_uses(hero, camp, kind)[0]))
         return next((n for n, page in enumerate(pages) if any(e[1] == uid for e in page)), 0)
@@ -7734,7 +7809,7 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         t = self.texts
         record = self._upgrades(key)
         catalog = self._upgrade_catalog()
-        manager = self._camp_manager(camp, hero.id)
+        manager = self._camp_can(camp, hero.id, "build")
         perks = self._camp_perks(camp, hero)
         built = [uid for uid in self._built(camp) if self._upgrade_kind(uid) == kind]
         body = [t.t(f"services.intro_{kind}")]
@@ -7815,7 +7890,10 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         return self._activity_view(hero, notice=t.t("upgrades.rest_started", price=self._money(price), time=self._fmt_duration(seconds)))
 
     def _camp_sell(self, hero: Hero) -> View:
-        """💱 Puesto de trueque: sell every material you carry at the camp; food never (it feeds the pantry, D-93)."""
+        """💱 Puesto de trueque: sell every material you carry at the camp; food never (it feeds the pantry, D-93).
+
+        [ES] D-346 y D-347 (0.63): paga el nivel de tu campamento (shop.sell_tiers: 60 %, 70 % si es castillo; sell_tiers.py
+        _camp_sale_tier); antes pagaba el sell_ratio del servicio (0,5), que ahora solo dice que el campamento compra."""
         t = self.texts
         here = self._upgrades_here(hero)
         if not here:
@@ -7825,13 +7903,12 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
             return self._services_view(hero)
         if hero.activity:
             return self._service_type_view(hero, "oficio", notice=t.t("activity.busy"))
+        tier = self._camp_sale_tier(hero) or "camp"     # D-346: 🏪 60 %, 🏰 70 % in a castle
         total, sold = 0, {}
-        for item_id, n in list(hero.backpack.items()):
-            item = self.content.items.get(item_id, {})
-            if item.get("kind") == "material" and not item.get("food") and not item.get("keep") and n > 0:
-                total += max(1, int(item["price"] * service["sell_ratio"])) * n
-                sold[item_id] = n
-                del hero.backpack[item_id]
+        for item_id, n in list(self._sell_all_common(hero).items()):     # materials, never food, refined goods or rares
+            total += self._sale_total(item_id, n, tier)
+            sold[item_id] = n
+            del hero.backpack[item_id]
         if not sold:
             return self._service_type_view(hero, "oficio", notice=t.t("upgrades.nothing_to_sell"))
         total, trade = self._merchant_sale(hero, total, "barter")   # D-116: 💱 Comercio (D-141: 🐪 Caravanero)
@@ -8318,6 +8395,8 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
             "tend_pct": f"{float(self._tend_cfg().get('per_rank', 0.0)) * 100:g}",        # D-336: 🌱 a trade's care (/d09)
             "tend_hours": f"{float(self._tend_cfg().get('hours', 0)):g}",
             **self._difficulty_faq_values(),            # D-337 (0.61): {diff_level}, {diff_week}, {diff_cap}… of /d66
+            **self._sale_faq_values(),                  # D-346 (0.63): {sell_remote}, {sell_fire}, {sell_camp}, {sell_castle} of /d68
+            **self._perm_faq_values(),                  # D-346 (0.63): {announce_days} of /d69
         }
 
     def _faq_code(self, raw: str) -> str | None:
@@ -9565,7 +9644,7 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         bag = hero.backpack
         if not missing_for(rdef, bag):
             return 0, False
-        usable = pool["usable"] if pool else {}
+        usable = self._pool_usable(pool, rdef["profession"])     # D-346: 🔒 closed, still usable with ⚒️ for it
         if usable:
             pooled = {item: bag.get(item, 0) + usable.get(item, 0) for item in rdef["inputs"]}
             if not missing_for(rdef, pooled) and sum(fund_draw(rdef, bag, usable).values()) <= pool["left"]:
@@ -9783,7 +9862,7 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
             return self._station_view(hero, "cook" if pid == COOK_PROFESSION else branch, page,
                                       notice=notice or t.t("prof.locked", need=need_rank, name=self._prof_name(pid), rank=rank))
         stations, where = self._stations_here(hero)
-        pool = self._fund_pool(hero, where) if pid in stations else None     # D-322: the guild's fund at your camp's stations
+        pool = self._fund_pool(hero, where, pid) if pid in stations else None   # D-322 (D-346: ⚒️ by profession)
         usable = pool["usable"] if pool else {}
         body = [self._pspec_mark(rdef) + self._recipe_name(rid),
                 t.t("prof.recipe_prof", name=self._prof_name(pid), rank=rank, title=self._rank_title(rank), need=need_rank)]
@@ -9915,7 +9994,7 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
             return self._recipe_view(hero, rid, page, notice=self._pspec_recipe_lock(hero, rdef))
         if self._book_missing(hero, rdef):                       # D-306 (0.44): no 📚 recipe book, nothing spent
             return self._recipe_view(hero, rid, page, notice=self._book_lock_line(hero, rdef))
-        pool = self._fund_pool(hero, where)                      # D-322: the backpack first, then what the guild's fund has left
+        pool = self._fund_pool(hero, where, pid)                 # D-322: the backpack first, then the fund (D-346: ⚒️)
         usable = pool["usable"] if pool else {}
         missing = missing_for(rdef, {item: hero.backpack.get(item, 0) + int(usable.get(item, 0)) for item in rdef["inputs"]}, times)
         if missing:
@@ -12531,7 +12610,9 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         (_resource_detail).
         D-338 y D-339 (0.62): cada línea dice cuántas llevas de cuántas caben de ese tipo ("🪵 Madera 7/30  /01"; 40 o 50 con la
         🎒 mochila de su oficio puesta, marcada con 🎒: no ocupa tipo) y abajo los tipos que llevas de cuántos.
-        La llaman: el botón 📦 Recursos de la mochila y ↩️ Volver del detalle de un recurso.
+        D-346 y D-347 (0.63): con algo que se puede vender, el botón 💱 Vender (_shop_sell_view: la venta desde cualquier lugar,
+        al precio del lugar donde estás); 3 botones como mucho.
+        La llaman: el botón 📦 Recursos de la mochila, ↩️ Volver del detalle de un recurso y de 💱 Vender (fuera de la fogata).
         Si cambia, afecta: dónde ve el jugador lo que recolectó (tope de 4 botones, D-75).
         """
         t = self.texts
@@ -12556,6 +12637,8 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
             body.append(t.t("pack.pocket_legend"))
         body += ["", self._bag_space_line(hero)] + self._bag_over_lines(hero)
         actions = [Action(id=f"res:{page + 1}", label=t.t("resources.more"))] if pages > 1 else []
+        if self._sellable(hero):                        # D-346 (0.63): 💱 Vender from anywhere (3 buttons at most, D-75)
+            actions.append(Action(id="sellv", label=t.t("sale.button")))
         actions.append(Action(id="bag", label=t.t("menu.back")))
         return View(kind="resources", title=t.t("resources.title"), body=body, actions=actions, notice=notice)
 
@@ -12966,8 +13049,9 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         if item_id in hero.gear_new:
             hero.gear_new.remove(item_id)
         actions = []
-        in_claro = (mapgen.is_bonfire(hero.x, hero.y) and not hero.activity) or self._sells_gear_here(hero)   # D-101: 🔨 Herrería
-        price = max(1, int(item.get("price", 1) * self.content.balance["shop"]["sell_ratio"]))
+        tier = self._sale_tier_here(hero, item_id)    # D-101: 🔨 Herrería/Forja like the fogata; D-346: 🎒 from anywhere
+        in_claro = tier != "remote"
+        price = self._sale_total(item_id, 1, tier)
         if worn_slot:
             body.append(t.t("gear.is_worn"))
             actions.append(Action(id=f"unequip:{worn_slot}", label=t.t("gear.unequip_button")))
@@ -12983,8 +13067,9 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
                 actions.append(Action(id=f"equip:{item_id}", label=t.t("gear.equip_button")))
             if in_claro:
                 actions.append(Action(id=f"sellg:{item_id}", label=t.t("gear.sell_button", price=self._money(price))))
-            else:
-                body.append(t.t("gear.sell_in_claro", price=self._money(price)))
+            else:                                       # D-346 (0.63): sell it from here (asks first, with the fogata's price)
+                actions.append(Action(id=f"sellgq:{item_id}", label=t.t("sale.gear_button", price=self._money(price))))
+                body.append(t.t("sale.gear_line", here=self._money(price), fire=self._money(self._sale_total(item_id, 1, "fire"))))
         if self._enchant_slot(item):                # D-115: ✨ Encantamiento (enchant it, or disenchant it from the backpack)
             actions.append(Action(id=f"ench:{item_id}", label=t.t("ench.item_button")))
         actions.append(Action(id="unequipl" if worn_slot else "gear:0", label=t.t("menu.back")))    # D-299: back to its list
@@ -12998,14 +13083,20 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         self._clamp_hp(hero)
         return self._worn_view(hero, notice=t.t("gear.equipped", item=self._gear_name(item_id)))
 
-    def _sell_gear(self, hero: Hero, item_id: str, in_claro: bool) -> View:
+    def _sell_gear(self, hero: Hero, item_id: str, confirmed: bool = False) -> View:
+        """Sell one unworn gear piece: at a 🔥 fogata or your camp's 🔨 Forja at shop.sell_ratio (D-101), and since D-346 from
+        anywhere at the remote tier, after a confirmation that shows the fogata's price (sell_tiers.py _sell_confirm_view).
+
+        [ES] La llaman: "sellg:<pieza>" (en la fogata o la 🔨 Forja; en otro lado pregunta antes), "sellgq:" (pregunta) y
+        "sellgok:" (confirmada). Si cambia, afecta: tests/test_gear.py y tests/test_venta_y_permisos.py."""
         t = self.texts
         item = self.content.items.get(item_id, {})
-        if not in_claro:
-            return self._gear_view(hero, notice=t.t("shop.only_in_claro"))
         if item.get("kind") != "gear" or hero.backpack.get(item_id, 0) <= 0:
             return self._gear_view(hero)
-        price = max(1, int(item.get("price", 1) * self.content.balance["shop"]["sell_ratio"]))
+        tier = self._sale_tier_here(hero, item_id)
+        if tier == "remote" and not confirmed:         # D-346: a remote sale asks first
+            return self._sell_confirm_view(hero, {item_id: 1}, f"sellgok:{item_id}", f"item:{item_id}", gear=True)
+        price = self._sale_total(item_id, 1, tier)
         hero.backpack[item_id] -= 1
         if hero.backpack[item_id] <= 0:
             del hero.backpack[item_id]

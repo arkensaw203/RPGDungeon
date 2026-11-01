@@ -87,13 +87,15 @@ ACTION_RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("craft", ("oficios", "est:", "esto:", "rec:", "mk:", "myprof", "learnlist", "pview:", "learn:", "ptend", "cook", "ench",
                "enc:", "dis:", "dis!:", "pspec", "pspv:", "pspp:", "pspx", "ptitle", "pbook", "trainer", "rpr", "rpo:", "rpx:",
                "rpl")),
-    ("market", ("mkt", "cord", "shop", "buy:", "sell:", "sellg:", "gems", "gem:")),
+    ("market", ("mkt", "cord", "shop", "buy:", "sell:", "sellg:", "gems", "gem:",
+                "sellv", "sellok:", "sellgq:", "sellgok:")),      # D-346 (0.63): 💱 Vender from anywhere (sell_tiers.py)
     ("camp", ("camp", "found", "rename", "cancel_name", "improve", "lvl", "grow", "claim:", "upgrades", "upw", "upg:", "upsvc",
               "crest", "csell", "ctaller", "tsew", "tchest", "know", "kstart:", "kgive", "upf:", "uprep", "svc:", "upact:",
               "upstop:", "upkeep", "research", "guild", "askjoin", "leave", "join:", "squads", "sqvote:", "sqmv:", "sqto:",
               "sqname", "gnew", "glist", "gcard:", "greq", "ginvite:", "gfund", "gmeet", "gfound", "gleave", "gmem", "goff:",
               "glead", "gkick", "garm", "ghelp:", "creqs", "cwjoin:", "gwleave", "gfcraft", "gflog", "gans:", "ginv:", "gcamp:",
-              "cinv:", "cwait:", "donate", "feed")),
+              "cinv:", "cwait:", "donate", "feed",
+              "perm", "staff", "stf:", "armlock", "gnote")),     # D-346 (0.63): 👔 Encargados, the armory's lock, 📣 (permissions.py)
     ("quests", ("story", "squests", "board", "npcs", "npc:", "talk:", "ch:", "factions", "journal", "jshow", "origin", "orig:",
                 "origpick:", "dly:", "cjournal", "hjournal", "guide")),
     ("hero", ("hero", "stats", "health", "talents", "tal:", "pt:", "role:", "respec", "dual", "bar", "hyb", "chcls", "chgrp:",
@@ -111,6 +113,7 @@ TYPED_RULES: tuple[tuple[re.Pattern[str], str], ...] = tuple((re.compile(pattern
     (r"^/(cf|co|cm)_?\d", "market"), (r"^/(c|s|b|k|o)_?\d", "market"), (r"^/v\d", "market"),
     (r"^/(rp|ro)_?\d", "craft"), (r"^/r_?\d", "craft"),
     (r"^/(mp|mq)_?\d", "hero"), (r"^/(e|q)_?\d", "hero"), (r"^/\d", "hero"),
+    (r"^/(fs|pc|en|em)_?\d", "camp"), (r"^/(permiso|permission|perm)", "camp"),   # D-346 (0.63): /fs07, /pc3, /en1, /em2…
     (r"^/(f|a|t|g|m)_?\d", "camp"), (r"^/inv_", "camp"),
 ))
 FIGHT_VIEWS = ("combat", "combat_end")     # a button that lands in a fight is fighting (a potion, the bag)

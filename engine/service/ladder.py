@@ -244,9 +244,11 @@ class LadderMixin:
 
         [ES] Qué hace: lo mismo que _leave_camp: sale de "members" y de los 🤝 asistentes, y su héroe queda sin campamento (con
         su mochila, su equipo, sus oficios y su progreso). Lo que dio queda en el campamento ("gave" no se toca). La llama:
-        _idle_camp. Si cambia, afecta: qué le queda a quien sale."""
+        _idle_camp. Si cambia, afecta: qué le queda a quien sale. D-346 (0.63): pierde sus 🔑 permisos (permissions.py
+        _perm_clear)."""
         camp["members"] = [m for m in camp.get("members") or [] if m != account]
         camp["helpers"] = [h for h in camp.get("helpers") or [] if h != account]     # D-289: a helper who leaves stops being one
+        self._perm_clear(camp, account)                 # D-346 (0.63): and its 🔑 permissions (permissions.py)
         data = self.store.get("hero", account)
         if data is not None and data.get("camp") == key:
             data["camp"] = None
