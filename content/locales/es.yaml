@@ -2310,7 +2310,7 @@ upgrades:                     # [ES] D-101 (provisional): las 🔨 Mejoras de lo
   rest_line: "🛏️ Refugio: duermes un rato y despiertas con la vida llena · {price}"
   rest_button: "🛏️ Refugio · {price}"
   rest_started: "🛏️ Pagas {price} y te acuestas en el refugio. Despertarás en {time}."
-  trade_line: "🏪 Puesto de trueque: compra tus materiales a la mitad de su precio. La comida no: va a la despensa."
+  trade_line: "🏪 Puesto de trueque: compra tus materiales. La comida no: va a la despensa."   # [ES] D-346 (0.63): el % lo dice sale.barter_line
   nothing_to_sell: "No llevas materiales para vender. La comida no se vende: va a la despensa."
   workshop_line: "{name}: coser 💰 bolsas y armar 🪎 cofres en el 🧵 Taller, como en el Claro."   # [ES] D-288: {name} es el edificio que lo da (🪡 Sastrería o un 🧵 Taller de antes)
   workshop_button: "🧵 Taller"

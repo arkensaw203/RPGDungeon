@@ -218,7 +218,8 @@ def test_trueque_sells_materials_but_never_food(service):
     view = service.act("test:1", "csell")
     hero = service._load("test:1")
     assert hero.backpack == {"carne": 3, "provisiones": 2}       # food stays: it feeds the pantry
-    assert hero.gold == 10 * max(1, int(service.content.items["madera"]["price"] * 0.5))
+    camp_pct = service.content.balance["shop"]["sell_tiers"]["camp"]     # D-346 (0.63): the 🏪 pays the camp's tier, 60 %
+    assert hero.gold == int(service.content.items["madera"]["price"] * 10 * camp_pct + 1e-9) == 12
     assert "No llevas materiales" in service.act("test:1", "csell").notice
 
 

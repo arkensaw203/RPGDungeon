@@ -2833,7 +2833,7 @@ upgrades:
   rest_line: '🛏️ Shelter: sleep a while and wake up with full health · {price}'
   rest_button: 🛏️ Shelter · {price}
   rest_started: 🛏️ You pay {price} and lie down in the shelter. You'll wake up in {time}.
-  trade_line: '🏪 Trading Post: buys your materials at half their price. Not food: that goes to the pantry.'
+  trade_line: '🏪 Trading Post: buys your materials. Not food: that goes to the pantry.'
   nothing_to_sell: 'You aren''t carrying any materials to sell. Food isn''t sold: it goes to the pantry.'
   workshop_line: '{name}: sew 💰 bags and build 🪎 chests in the 🧵 Workshop, just like in the Clearing.'
   workshop_button: 🧵 Workshop

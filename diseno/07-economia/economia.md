@@ -1,6 +1,6 @@
 # Economía
 
-> **Módulo** [07 · Economía](README.md) · **Depende de:** [Mundo vivo y viaje](../02-mundo/mundo-vivo-y-viaje.md), [Equipamiento](../03-personaje/equipamiento.md) · **Alimenta a:** [Profesiones](profesiones.md), [PvP](../06-contenido/pvp.md), [Monetización](monetizacion.md) · **Estado:** propuesta; el 🏛️ Mercado de §3.0 está en el juego desde la 0.46 (D-320); las reparaciones de §5 y los encargos de reparación de §7, desde la 0.57 (D-333); los pedidos de fabricación de §7, desde la 0.59 (D-335)
+> **Módulo** [07 · Economía](README.md) · **Depende de:** [Mundo vivo y viaje](../02-mundo/mundo-vivo-y-viaje.md), [Equipamiento](../03-personaje/equipamiento.md) · **Alimenta a:** [Profesiones](profesiones.md), [PvP](../06-contenido/pvp.md), [Monetización](monetizacion.md) · **Estado:** propuesta; el 🏛️ Mercado de §3.0 está en el juego desde la 0.46 (D-320); las reparaciones de §5 y los encargos de reparación de §7, desde la 0.57 (D-333); los pedidos de fabricación de §7, desde la 0.59 (D-335); la venta por niveles de §3.0.1, desde la 0.63 (D-346, D-347)
 
 **De dónde sale.**
 - *Albion Online*: casi todo el equipo lo fabrican jugadores y cada ciudad tiene su mercado. El **Mercado Negro** compra objetos de jugadores y los pone en el botín de los monstruos. El equipo se pierde en zonas de botín completo, y el Enfoque diario sube el rendimiento de los oficios.
@@ -73,6 +73,26 @@ El dueño pidió el 21-oct-2026 que los jugadores se vendan entre ellos el equip
 
 **Lo que todavía no está** (preguntas P-247 a P-250): órdenes de venta de recursos y pedidos de compra de equipo, transporte que tarda según la distancia y bandidos que asaltan transportes (D-137), bandas de precio por historial, el canal del mercado con precios, los pedidos de fabricación personales y de gremio (los públicos están desde la 0.59, D-335; E-280), mercados locales (descartados por D-137) y el 💱 Comercio, que sigue bloqueado hasta las caravanas (D-298).
 
+### 3.0.1 Lo que está en el juego: vender desde cualquier lugar, con precios por niveles (0.63, D-346 confirmada; D-347 provisional)
+
+El dueño pidió el 31-oct-2026 "una venta en la cual los jugadores puedan vender directamente sin necesidad de llegar al campamento, los objetos a un precio estimado; si van al campamento, quizás otro precio; y si va a la fogata, otro precio. Dale niveles de importancia". Sus números y la forma:
+
+| Lugar | Lo que paga un material | Qué compra |
+|---|---|---|
+| 🎒 **Desde cualquier lugar** (📦 Recursos → 💱 Vender, /vender, /v02 lejos de una fogata; también ocupado, nunca en una pelea) | **30 %**, al momento (lo bajo es el costo de no viajar) | Lo mismo que el mercader: materiales, comida, muebles, pociones y remedios; el equipo, desde su ficha |
+| 🔥 **En una fogata** (🛒 Mercader → 💱 Vender) | **50 %** (como siempre: la fogata no cambió) | Materiales, comida, muebles, pociones y remedios, y el equipo |
+| 🏪 **En tu campamento** con el Puesto de trueque | **60 %** | Solo materiales, nunca comida (D-93); su 🔨 Forja, el equipo al 50 % |
+| 🏰 **En tu castillo** (tu campamento en el nivel 9) | **70 %** | Lo mismo que tu campamento |
+
+- **Las demás categorías** conservan su precio de la fogata y lo escalan por el mismo factor: las pociones y los remedios pagan el 25 % en la fogata y el 15 % desde cualquier lugar; el equipo, 50 % en la fogata o en la 🔨 Forja y 30 % desde lejos (no sube en el campamento ni en el castillo: E-294).
+- **Cómo se cuenta:** en la fogata, como siempre (el precio de una unidad, redondeado hacia abajo, al menos 1, por la cantidad). En los demás lugares, sobre todo el montón: los recursos de base valen 2 o 3 🥉 y por unidad todos los lugares pagarían 1. Con el montón, 30 🪵 madera dan 18 desde lejos, 30 en la fogata, 36 en tu campamento y 42 en tu castillo. Desde lejos nunca se paga más que en la fogata, ni en tu campamento menos.
+- **Lo que un lugar no compra** se vende ahí mismo "desde cualquier lugar" (en tu campamento, la comida y las pociones llevan la marca 🎒).
+- **Antes de vender desde lejos** se ve lo que se vende y cuánto pagan aquí, en una fogata, en tu campamento y en tu castillo (solo los lugares que lo compran), y se confirma con ✅ Vender aquí. En la fogata y en tu campamento se vende sin preguntar, como antes.
+- **Los niveles de importancia** se ven en cada pantalla de vender: la escalera 📈 con 👉 donde estás.
+- **El 💱 Comercio** (beneficio y 🎓 especialidades) suma en toda venta; su experiencia sigue siendo 1 por 🥉 de la venta.
+- **Monedas que entran:** el castillo paga un 40 % más que antes por los materiales y tu campamento un 20 % más; la venta a distancia, un 40 % menos que la fogata. Se mide con el informe (registro de balance, 0.63).
+- **Código:** `engine/service/sell_tiers.py`; números en `content/balance.yaml` → `shop.sell_tiers`; textos `es_venta.yaml` y `en_venta.yaml`; ❓ /d68. Pruebas: `tests/test_venta_y_permisos.py`.
+
 ### El diseño completo del mercado (propuesta)
 
 - **Libro de órdenes** en cada asentamiento: órdenes de compra y de venta con custodia, cruzadas por precio y antigüedad. Es el formato de Albion y EVE, y el que TowerWars ya usa para sus recursos.
@@ -106,7 +126,7 @@ Ver [Mundo vivo y viaje](../02-mundo/mundo-vivo-y-viaje.md). En resumen:
 | Fuentes (entra oro) | Sumideros (sale oro) |
 |---|---|
 | Misiones y encargos | **Impuesto de mercado** (tasa por publicar + impuesto sobre la venta) |
-| Venta a PNJ (recompra de materiales y equipo) | Reparaciones |
+| Venta a PNJ (recompra de materiales y equipo; desde la 0.63, por niveles: §3.0.1) | Reparaciones |
 | Botín de monstruos | Postas, peajes de caminos y correo |
 | Recompensas de PvP y eventos | Sanatorio, templo, multas de karma |
 | Mercado Negro (compra equipo a los artesanos) | Mantenimiento de vivienda y territorios |

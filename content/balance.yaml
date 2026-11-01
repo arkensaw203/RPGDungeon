@@ -475,6 +475,11 @@ shop:                        # [ES] mercader del Claro
   sells: [pocion_vida, venda, provisiones]   # [ES] D-93: 🥖 provisiones, comida de emergencia cara (sumidero de monedas, §15.8)
   sell_ratio: 0.5            # [ES] compra materiales a la mitad de su precio
   remedy_sell_ratio: 0.25    # [ES] D-306.5 (0.43, el dueño el 20-oct-2026): hasta que haya mercado entre jugadores, compra pociones y remedios (kind potion y bandage, de la mochila; lo del cinturón no) a un cuarto de su precio, al menos 1: a poco, menos que lo que pagan sus materiales. Nunca más que lo que el mercader cobra (no se gana comprando y vendiendo)
+  sell_tiers:                # [ES] D-346 (confirmada por el dueño el 31-oct-2026: "30 % desde cualquier lugar, 50 % en cualquier fogata como hoy, 60 % en tu campamento con el 🏪 Puesto de trueque, 70 % en un castillo") y D-347 (cómo se aplicó; provisional): la venta por niveles (engine/service/sell_tiers.py). Cada número es la parte del precio que paga un MATERIAL en ese lugar. Las otras categorías conservan su precio de la fogata (sell_ratio; las pociones y remedios remedy_sell_ratio) y lo escalan por el mismo factor (nivel ÷ fire): una poción 0,15 a distancia. "fire" tiene que ser igual a sell_ratio (si no, la fogata cambia de precio)
+    remote: 0.30             # [ES] 🎒 desde cualquier lugar (💱 Vender de 📦 Recursos, /vender, /v02 lejos de una fogata): paga al momento; lo bajo es el costo de no viajar
+    fire: 0.50               # [ES] 🔥 en cualquiera de las 9 fogatas, al 🛒 mercader (igual que antes) y la 🔨 Forja del campamento con el equipo
+    camp: 0.60               # [ES] 🏪 en el centro de TU campamento con el Puesto de trueque construido (solo materiales, nunca comida, D-93)
+    castle: 0.70             # [ES] 🏰 lo mismo cuando tu campamento es castillo (camps.stages "castillo", nivel 9). Un 40 % más que antes por los materiales: más monedas entran al juego (registro de balance, 0.63)
   weekly_cap: {provisiones: 20}   # [ES] D-125 (confirmada, entrevista E-09): cada jugador compra como mucho 20 🥖 provisiones por semana real; la despensa la llenan los oficios (cocina, caza, pesca). Se cuenta en el store "shop_week"
 
 market:                      # [ES] D-320 (0.46, provisional; D-137 confirmada: una subasta global con transportistas): 🏛️ Mercado entre jugadores (engine/service/market.py; economia.md §3.0). Números de Claude: se ajustan con el informe diario
@@ -664,6 +669,11 @@ upgrades:                    # [ES] D-101 (provisional): las 🔨 Mejoras de los
 armory:                      # [ES] D-290 (0.39, el dueño): ⚔️ Armería del gremio: un cofre de equipo compartido (los miembros dejan armas y armaduras que no usan y otros las toman), desde que existe el gremio
   slots: 30                  # [ES] cuántas piezas caben (Claude)
   log_kept: 10               # [ES] cuántos movimientos (quién dejó o tomó qué) guarda y muestra la pantalla (Claude)
+
+perms:                       # [ES] D-346 (confirmada por el dueño el 31-oct-2026: solo el fundador da permisos, con el código del jugador; cuatro, uno por uno) y D-347 (cómo se aplicó; provisional; números de Claude): los 🔑 permisos del campamento (engine/service/permissions.py)
+  announce_days: 7           # [ES] días que un 📣 anuncio (permiso 👥 Gente y chat) queda arriba en 🛡️ Gremio y 📢 Chat
+  announce_max_chars: 300    # [ES] largo máximo de un 📣 anuncio; lo que pasa se corta con "…"
+  attention_works: 3         # [ES] cuántas obras nombra la línea "🔨 obras que esperan materiales" de 👀 Lo que espera atención
 
 fund_crafts:                 # [ES] D-322 (0.47, pedido del dueño del 21-oct-2026; números de Claude, provisional): el 💰 fondo del campamento primero alimenta las obras activas y ⏫ Siguiente nivel (lo que les falta queda guardado); lo que sobra lo usan los miembros al refinar y fabricar en las estaciones de su campamento (engine/service/gremio.py _fund_pool)
   daily_cap: 40              # [ES] unidades del fondo que cada miembro puede tomar por día real para sus oficios (E-240, P-251). 40 ≈ 13 tablones o un par de piezas de equipo por día

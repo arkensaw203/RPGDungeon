@@ -172,7 +172,7 @@ upgrades:
     level: 3
     cost: {madera: 60, piedra: 40, fibra: 20}   # [ES] 120 unidades
     coins: 100                            # [ES] 1 🥈: el puesto se arma con mercancía
-    service: {sell_ratio: 0.5}            # [ES] compra materiales a la mitad de su precio, como el mercader del Claro (shop.sell_ratio). La comida nunca
+    service: {sell_ratio: 0.5}            # [ES] compra materiales; la comida nunca. Desde la 0.63 (D-346) el número ya no se usa: paga balance.yaml shop.sell_tiers (60 %, 70 % en un castillo). La clave sigue: dice que el campamento tiene el puesto (🏛️ Mercado, 💱 Vender)
   granero:
     emoji: "🌾"
     kind: casa
