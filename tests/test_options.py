@@ -357,9 +357,10 @@ def test_auto_hunting_goes_in_batches_of_two_energy_per_prey(service, clock, wea
     amounts = service.act("test:1", "prey")
     assert amounts.kind == "batch" and amounts.title == "🏹 Cazar en lote"
     # D-189: every amount at once, small buttons with just the number, and a wide ❌ Cancelar (the times go in the text)
-    assert ids(amounts) == ["do:hunt:4", "do:hunt:10", "do:hunt:20", "do:hunt:40", "do:hunt:max", "hunt"]
-    assert [a.label for a in amounts.actions[:5]] == ["4", "10", "20", "40", "Todo"] and amounts.layout == [5, 1]
-    assert any("4 → 32 min" in line for line in amounts.body)
+    # D-351 (0.63.1): the smallest amount is one prey (2 ⚡)
+    assert ids(amounts) == ["do:hunt:2", "do:hunt:4", "do:hunt:10", "do:hunt:20", "do:hunt:40", "do:hunt:max", "hunt"]
+    assert [a.label for a in amounts.actions[:6]] == ["2", "4", "10", "20", "40", "Todo"] and amounts.layout == [6, 1]
+    assert any("2 → 16 min" in line for line in amounts.body) and any("4 → 32 min" in line for line in amounts.body)
     assert ids(service.act("test:1", "amt:hunt:1")) == ids(amounts)              # old page buttons show the same
     started = service.act("test:1", "do:hunt:4")
     assert started.kind == "activity" and service._load("test:1").energy == 48     # the first prey is paid now
@@ -378,8 +379,9 @@ def test_auto_hunting_goes_in_batches_of_two_energy_per_prey(service, clock, wea
 def test_hunting_batch_stops_properly(service, clock):
     ready(service, level=30, energy=3)
     view = service.act("test:1", "prey")
-    assert ids(view) == ["do:hunt:max", "hunt"] and view.actions[0].label == "Todo"     # D-189: just the amount
-    assert any("todo (2)" in line for line in view.body)                              # the energy and time go in the text
+    # D-351 (0.63.1): 3 ⚡ give one prey, and that is the 2 button (D-189: just the amount); "Todo" only when it is more
+    assert ids(view) == ["do:hunt:2", "hunt"] and view.actions[0].label == "2"
+    assert any("2 → 16 min" in line for line in view.body)                            # the energy and time go in the text
     service.act("test:1", "do:hunt:max")
     assert service._load("test:1").activity["total"] == 1 and service._load("test:1").energy == 1
     pushes = run_batch(service, clock, "test:1", 16, 2)
