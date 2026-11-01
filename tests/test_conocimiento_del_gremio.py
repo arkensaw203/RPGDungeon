@@ -132,3 +132,26 @@ def test_guild_mates_are_drawn_on_the_map(service):
     grid = [line for line in view.body if " " not in line]                       # the map's rows (the legend has spaces)
     assert sum(line.count("🧍") for line in grid) == 1                            # you
     assert sum(line.count(mark) for line in grid) == 1                            # Bram; Cira is not in the guild
+
+
+def first_node(service):
+    """The nearest zone with a ✨ resource node (the place comes from the world seed)."""
+    for r in range(1, 30):
+        for x in range(-r, r + 1):
+            for y in (-r, r):
+                if service._node_main(x, y):
+                    return x, y
+    raise AssertionError("no node near the start")
+
+
+def test_a_mate_s_resource_node_is_known_by_the_guild(service):
+    # D-349 (0.62.3, the owner: "a todos los que pertenecen a un campamento o gremio se les comparte la info de lo que
+    # exploraron los demás"): the ✨ nodes join what the guild shares (D-282); the discovery notice stays one's own
+    guild_of_two(service)
+    x, y = first_node(service)
+    service.store.put("nodes", service._load("test:2").id, {"found": [f"{x}:{y}"]})
+    lyra = service._load("test:1")
+    assert f"{x}:{y}" in service._node_known(lyra) and f"{x}:{y}" not in service._node_found(lyra)
+    assert service._node_grow_mark(lyra, x, y)                                   # ⬆️ Agrandar shows its ✨ mark
+    make_hero(service, "test:3", "Oren")                                          # someone outside the guild: nothing
+    assert f"{x}:{y}" not in service._node_known(service._load("test:3"))

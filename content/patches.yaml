@@ -1217,3 +1217,12 @@ v0_62_2:
     - "⛓️ Mail no longer exists: armor is leather, cloth or plate. It no longer drops as loot or comes out of chests."
     - "🦺 If you had mail pieces (worn or stored, also in the 🏛️ Market, in 📦 Deliveries or in the ⚔️ Armory), they are now leather, of the same slot and the same level; a ✒️ masterwork becomes the leather masterwork. They keep their 🔧 durability, their ✨ enchantment and their ✒️ signature. You lose nothing, and the game tells you what changed."
     - "🎓 The ⛓️ Mail specialization of 🦺 Leatherworking was retired: if you had it, pick another one for free in ⚒️ Professions → 🎓 Specialization. Its mastery stays saved."
+
+v0_62_3:
+  version: "0.62.3"
+  title: "✨ Lost Realms 0.62.3: tu gremio comparte también los nodos"
+  title_en: "✨ Lost Realms 0.62.3: your guild also shares resource nodes"
+  notes:
+    - "🗺️ Lo que explora uno de tu gremio o campamento ya lo sabía todo el grupo: el % de cada zona, sus recursos y el color del mapa. Ahora también los ✨ nodos de recursos: al ⬆️ Agrandar el campamento ves el ✨ de los que encontró cualquier compañero."
+  notes_en:
+    - "🗺️ What someone in your guild or camp explores was already known to the whole group: each zone's %, its resources and the map colour. Now the ✨ resource nodes too: when you ⬆️ Expand the camp you see the ✨ of those any mate found."

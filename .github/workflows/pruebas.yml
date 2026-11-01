@@ -1,0 +1,65 @@
+# Automatic checks for every change proposed to main (D-348, 31-oct-2026).
+# [ES] Para qué sirve: antes de unir un cambio a main (que Railway despliega solo), GitHub revisa que el código compile, que
+#     los textos estén en los dos idiomas sin errores y que el bot de consola arranque; y, para los cambios que no vienen de
+#     una sesión de Claude (que ya corre todas las pruebas antes de subir), la suite completa en 4 partes a la vez.
+#     Si algo falla, el cambio queda marcado en rojo. Para que nadie pueda unir un cambio en rojo hace falta la regla de
+#     main en GitHub (Settings → Branches → "Require status checks to pass"), que pone el dueño.
+#     Lo que nunca va aquí: tokens, claves ni datos del servidor (D-345). No toca Railway.
+name: Pruebas
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pruebas-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  rapido:
+    name: Compila, textos y arranque
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Instalar
+        run: pip install -r requirements.txt "pytest>=8"
+      - name: Compila
+        run: python -m compileall -q engine adapters tools
+      - name: Textos en español e inglés
+        run: |
+          python tools/check_locales.py | tee locales.txt
+          grep -q ": 0 errores" locales.txt
+      - name: Arranca el bot de consola
+        run: printf 'Lyra\n1\n1\n' | timeout 60 python -m adapters.cli.play --fast
+      - name: Sin secretos ni datos del servidor
+        run: python -m pytest -q -p no:cacheprovider tests/test_seguridad.py
+
+  suite:
+    name: Pruebas (parte ${{ matrix.shard }} de 4)
+    if: ${{ !startsWith(github.head_ref, 'claude/') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Instalar
+        run: pip install -r requirements.txt "pytest>=8"
+      - name: Pruebas
+        run: |
+          files=$(ls tests/test_*.py | sort | awk -v n=${{ matrix.shard }} 'NR%4==n')
+          python -m pytest -q -p no:cacheprovider $files
