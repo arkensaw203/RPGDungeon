@@ -288,6 +288,7 @@ Página 1 de 2
 
 - **El código es fijo y se escribe a mano** en `content/items.yaml` (`code: 2`), nunca sale del orden de la lista: agregar un recurso no cambia los códigos que el jugador ya conoce (regla de IDs estables). Hoy van del 1 al 52 (41 materiales, 7 comidas y 4 muebles). Los números pelados (`/07`) quedan reservados para siempre a los recursos.
 - **Al tocar `/07`** se abre la pantalla del recurso: cuántos llevas y para qué sirve (el mismo texto que antes salía en la lista). Se puede mirar aunque no lo lleves; un código que no existe vuelve a 📦 Recursos con un aviso. Su botón: ↩️ Volver a 📦 Recursos.
+- **💱 Vender (desde la 0.63, D-346, D-347):** con algo que se puede vender, 📦 Recursos suma el botón 💱 Vender: la venta desde cualquier lugar, al 30 % del precio (en una 🔥 fogata 50 %, en tu campamento con el 🏪 Puesto de trueque 60 %, en tu castillo 70 %); desde lejos pregunta antes con los precios de los lugares mejores. Ver [Economía](../07-economia/economia.md) §3.0.1.
 - **Por ahora no se genera de las recetas** qué oficio lo junta y quién lo pide (punto c de D-243): el dueño dijo que eso "no me interesa que la gente lo sepa. No por ahora" (D-255).
 
 **Mochila llena:**

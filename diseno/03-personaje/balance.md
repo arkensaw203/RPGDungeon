@@ -1251,6 +1251,35 @@ El dueño: "los bosques deberían tener, las montañas deberían tener, o sea, e
 
 > **Desde la 0.42 (D-305)** las dos cosas están en el juego (abajo).
 
+### Octubre de 2026 (31-oct): vender desde cualquier lugar, con precios por niveles (0.63, D-346 confirmada; D-347 provisional)
+
+El dueño: "que los jugadores puedan vender directamente sin necesidad de llegar al campamento... a un precio estimado; si van al campamento, otro precio; y si va a la fogata, otro precio. Dale niveles de importancia". Él eligió los cuatro números; cómo se cuentan lo eligió Claude.
+
+| Qué (`balance.yaml`) | Antes | Ahora |
+|---|---|---|
+| `shop.sell_tiers` (nuevo) | — | `remote` 0,30 · `fire` 0,50 · `camp` 0,60 · `castle` 0,70 (lo que paga un material) |
+| 🔥 La fogata (`shop.sell_ratio` 0,5, `remedy_sell_ratio` 0,25) | 0,5 y 0,25, por unidad | igual (no cambia) |
+| 🏪 Puesto de trueque (`camp_upgrades.yaml` `trueque.service.sell_ratio`) | 0,5, por unidad | 0,6 (0,7 en un castillo), sobre el montón; el número del servicio ya no se usa |
+| 🎒 Venta a distancia | — (solo se vendía en la fogata o el campamento) | 0,30 sobre el montón; pociones y remedios 0,15; equipo 0,30 |
+| 🔨 Forja del campamento (equipo) | 0,5 | igual |
+
+**Cuánto paga cada lugar** (medido con el motor; sin el 💱 Comercio):
+
+| Qué vendes | 🎒 Desde lejos | 🔥 Fogata | 🏪 Tu campamento | 🏰 Tu castillo |
+|---|---|---|---|---|
+| 30 🪵 madera (vale 2) | 18 | 30 | 36 | 42 |
+| 30 🌿 hierba curativa (vale 3) | 27 | 30 | 54 | 63 |
+| 30 ⚙️ piezas de metal (vale 6) | 54 | 90 | 108 | 126 |
+| 30 🟫 tablones (vale 7) | 63 | 90 | 126 | 147 |
+| 1 espada de nivel 2 (vale 20) | 6 | 10 | 10 (🔨 Forja) | 10 (🔨 Forja) |
+
+- **Por qué sobre el montón:** los recursos de base valen 2 o 3 🥉 y, contados por unidad (redondeando hacia abajo, al menos 1), los cuatro lugares pagarían 1 por unidad. La fogata se quedó contando por unidad para no cambiar (D-346: "como hoy"); por eso un objeto de precio impar paga en la fogata menos del 50 % (uno de 3 🥉 paga 1, el 33 %) y en tu campamento casi el doble que en la fogata.
+- **Topes:** desde lejos nunca más que la fogata; en tu campamento o tu castillo nunca menos.
+
+**Monedas que entran al juego:** los materiales vendidos en tu campamento traen un 20 % más que antes y en tu castillo un 40 % más (en los de precio impar, hasta el doble por el redondeo de la fogata); lo vendido desde lejos, un 40 % menos que la fogata. Como el castillo llega tarde (nivel 9) y solo compra materiales, el aumento se nota en los campamentos grandes. La experiencia del 💱 Comercio sube igual (1 por 🥉 vendido).
+
+**Lo que queda por mirar:** con el informe de cada 3 horas, cuánto bronce entra por ventas antes y después de la 0.63, cuánto se vende desde lejos y si los castillos venden mucho más. Si entra demasiado: bajar `castle` y `camp`, o contar también la fogata sobre el montón y redondear igual en todos. El equipo no sube en el campamento ni en el castillo (E-294).
+
 ### Octubre de 2026 (24-oct): sin malla (0.62.2, D-342 confirmada; D-343 provisional)
 
 El dueño: "la malla la quitamos, dejamos cuero, tela y placa únicamente". Ninguna clase usaba malla, pero seguía cayendo. Ningún número de balance cambia; cambia de qué tipos sale el botín.

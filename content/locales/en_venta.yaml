@@ -1,0 +1,41 @@
+# Texts of the sale by tiers: from anywhere at a low price, more at a 🔥 campfire, in your camp and in a castle (D-346,
+# confirmed; how it was applied: D-347, provisional; 0.63).
+# [ES] Textos en inglés de la venta por niveles (D-346; D-347). Mismas claves que es_venta.yaml (tools/check_locales.py).
+
+sale:
+  button: "💱 Sell"
+  intro:
+    remote: "🎒 You sell from here: you get {pct} % of each thing's price, at once. Tap a thing's code to sell all of it (first it shows what the better places pay)."
+    camp: "🏪 You sell at your camp: the Trading Post pays {pct} % for materials. What it does not buy (food, potions, furniture) is sold from here for less (🎒). Tap the code to sell."
+    castle: "🏰 You sell at your castle: the Trading Post pays {pct} % for materials. What it does not buy (food, potions, furniture) is sold from here for less (🎒). Tap the code to sell."
+  remote_mark: " 🎒"
+  item_line: "{emoji} {item} ×{n} → {total}{mark}  /v{code}"
+  remote_hint: "💡 From here they pay little: it is the cost of not travelling. At a 🔥 campfire, at your camp with the 🏪 or at your 🏰 castle you get more."
+  ladder_title: "📈 Where your sale pays more (materials):"
+  ladder_line: "{mark} {place}: {pct} %"
+  here_mark: "👉"
+  other_mark: "▫️"
+  tier:
+    remote: "🎒 From anywhere"
+    fire: "🔥 At a campfire (🛒 merchant)"
+    camp: "🏪 At your camp with the Trading Post"
+    castle: "🏰 At your castle"
+    forge: "🔥 At a campfire or your camp's 🔨 Forge"
+  ladder_rules: "🧪 Potions and remedies, half of that. The 🏪 only buys materials (never food); gear is sold from 🛡️ Gear."
+  compare_here: "👉 {place} (here): {total}"
+  compare_line: "▫️ {place}: {total}"
+  compare_no_barter: "🏪 Your camp and your 🏰 castle do not buy this (only materials, never food)."
+  confirm_title: "💱 Sell from here?"
+  confirm_intro: "You are about to sell: {items}"
+  confirm_trade: "It pays at once; your 💱 Trade adds on top. If you travel to a better place, you get more."
+  confirm_button: "✅ Sell here · {total}"
+  barter_line:
+    camp: "📈 Here they pay {pct} % for your materials (at a 🏰 castle, {castle} %)."
+    castle: "📈 Your castle pays {pct} % for your materials: the best price in the game."
+  gear_button: "💱 Sell here (+{price})"
+  gear_line: "💰 From here you get {here} for it; at a 🔥 campfire or at your camp's 🔨 Forge, {fire}."
+
+faq:
+  d68:
+    q: "💱 Can I sell without going to a campfire?"
+    a: "Yes: in 🎒 Backpack → 📦 Resources → 💱 Sell (or /sell) you sell from anywhere, at once, but they pay little: {sell_remote}% of the price (potions and remedies, {remedy_remote}%). Before selling from afar you see what the better places would give you and you confirm. The better the place, the more they pay: 🎒 from anywhere {sell_remote}%, 🔥 at a campfire {sell_fire}%, 🏪 at your camp with the Trading Post {sell_camp}% and 🏰 at your castle {sell_castle}%. The 🏪 only buys materials (never food); gear is sold from 🛡️ Gear, at {sell_fire}% at a campfire or at your camp's 🔨 Forge. Your 💱 Trade adds on top everywhere."

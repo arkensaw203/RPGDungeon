@@ -1,0 +1,46 @@
+# Texts of the sale by tiers: from anywhere at a low price, more at a 🔥 campfire, in your camp and in a castle (D-346,
+# confirmed; how it was applied: D-347, provisional; 0.63).
+# [ES] Textos de la venta por niveles (D-346, confirmada por el dueño el 31-oct-2026: "que los jugadores puedan vender
+# directamente sin necesidad de llegar al campamento... dale niveles de importancia"; cómo se aplicó: D-347, provisional). Se
+# junta con es.yaml al cargar (engine/core/content.py). Lo lee: engine/service/sell_tiers.py (la escalera 📈, la confirmación
+# de la venta a distancia) y engine/service/game.py (💱 Vender en cualquier lugar, 📦 Recursos, la pieza de equipo, la línea del
+# 🏪 Puesto de trueque). Los % salen de balance.yaml shop.sell_tiers. Una clave nueva va también en en_venta.yaml
+# (tools/check_locales.py). Si cambias una clave, búscala en el código: una clave que falta se ve como [clave].
+
+sale:
+  button: "💱 Vender"
+  intro:                       # [ES] la primera línea de 💱 Vender fuera de la fogata (en la fogata sigue shop.sell_intro)
+    remote: "🎒 Vendes desde aquí: te pagan el {pct} % del precio de cada cosa, al momento. Toca el código de una cosa para venderla toda (antes te muestra cuánto pagan en los lugares mejores)."
+    camp: "🏪 Vendes en tu campamento: el Puesto de trueque paga el {pct} % por los materiales. Lo que no compra (comida, pociones, muebles) se vende desde aquí a menos (🎒). Toca el código para vender."
+    castle: "🏰 Vendes en tu castillo: el Puesto de trueque paga el {pct} % por los materiales. Lo que no compra (comida, pociones, muebles) se vende desde aquí a menos (🎒). Toca el código para vender."
+  remote_mark: " 🎒"
+  item_line: "{emoji} {item} ×{n} → {total}{mark}  /v{code}"   # [ES] D-346: fuera de la fogata, lo que paga todo el montón (sin "c/u")
+  remote_hint: "💡 Desde aquí pagan poco: es el costo de no viajar. En una 🔥 fogata, en tu campamento con el 🏪 o en tu 🏰 castillo te dan más."
+  ladder_title: "📈 Dónde rinde más tu venta (materiales):"
+  ladder_line: "{mark} {place}: {pct} %"
+  here_mark: "👉"
+  other_mark: "▫️"
+  tier:
+    remote: "🎒 Desde cualquier lugar"
+    fire: "🔥 En una fogata (🛒 mercader)"
+    camp: "🏪 En tu campamento con el Puesto de trueque"
+    castle: "🏰 En tu castillo"
+    forge: "🔥 En una fogata o la 🔨 Forja de tu campamento"
+  ladder_rules: "🧪 Las pociones y los remedios, la mitad de eso. El 🏪 compra solo materiales (nunca comida); el equipo se vende desde 🛡️ Equipo."
+  compare_here: "👉 {place} (aquí): {total}"
+  compare_line: "▫️ {place}: {total}"
+  compare_no_barter: "🏪 Tu campamento y tu 🏰 castillo no compran esto (solo materiales, nunca comida)."
+  confirm_title: "💱 ¿Vender desde aquí?"
+  confirm_intro: "Vas a vender: {items}"
+  confirm_trade: "Paga al momento; tu 💱 Comercio suma encima. Si viajas a un lugar mejor, te dan más."
+  confirm_button: "✅ Vender aquí · {total}"
+  barter_line:                 # [ES] D-346: la línea del 🏪 Puesto de trueque en ⚒️ Oficios de 🏘️ Servicios
+    camp: "📈 Aquí pagan el {pct} % por tus materiales (en un 🏰 castillo, el {castle} %)."
+    castle: "📈 Tu castillo paga el {pct} % por tus materiales: el mejor precio del juego."
+  gear_button: "💱 Vender aquí (+{price})"
+  gear_line: "💰 Desde aquí te dan {here} por ella; en una 🔥 fogata o en la 🔨 Forja de tu campamento, {fire}."
+
+faq:                           # [ES] D-346: ❓ /d68 (content/faq.yaml); los % salen de balance.yaml shop.sell_tiers (_sale_faq_values)
+  d68:
+    q: "💱 ¿Puedo vender sin ir a la fogata?"
+    a: "Sí: en 🎒 Mochila → 📦 Recursos → 💱 Vender (o /vender) vendes desde cualquier lugar, al momento, pero te pagan poco: el {sell_remote} % del precio (las pociones y remedios, el {remedy_remote} %). Antes de vender desde lejos ves cuánto te darían en los lugares mejores y confirmas. Cuanto mejor el lugar, más pagan: 🎒 desde cualquier lugar {sell_remote} %, 🔥 en una fogata {sell_fire} %, 🏪 en tu campamento con el Puesto de trueque {sell_camp} % y 🏰 en tu castillo {sell_castle} %. El 🏪 compra solo materiales (nunca comida); el equipo se vende desde 🛡️ Equipo, al {sell_fire} % en una fogata o en la 🔨 Forja de tu campamento. Tu 💱 Comercio suma en todas."

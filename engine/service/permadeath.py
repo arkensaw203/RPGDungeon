@@ -289,6 +289,7 @@ class PermadeathMixin:
         if camp and camp.get("founder_id") != hero.id:
             camp["members"] = [m for m in camp.get("members") or [] if m != hero.id]
             camp["helpers"] = [h for h in camp.get("helpers") or [] if h != hero.id]
+            self._perm_clear(camp, hero.id)             # D-346 (0.63): and its 🔑 permissions (permissions.py)
             self.store.put("camp", key, camp)
             hero.camp = None
             self._tell_waiting_room(key)                # a place opened for who waits in the guild (D-323)
