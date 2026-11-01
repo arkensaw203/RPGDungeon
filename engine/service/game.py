@@ -13723,6 +13723,20 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         """The nodes this hero discovered ("x:y"), for ever (store "nodes", key its id: {"found": [...]})."""
         return set((self.store.get("nodes", hero.id) or {}).get("found", []))
 
+    def _node_known(self, hero: Hero) -> set[str]:
+        """The nodes this hero knows: its own and those its guild or camp mates discovered (D-349, like D-282).
+
+        [ES] Qué hace: lo que exploran los compañeros del gremio o del campamento lo sabe todo el grupo (D-282, 0.38); desde la
+        0.62.3 (D-349, el dueño: "a todos los que pertenecen a un campamento o gremio se les comparte la info de lo que exploraron
+        los demás") también los ✨ nodos de recursos. Lo propio sigue aparte (_node_found): el aviso de descubrir un nodo, el
+        camino guiado y 📒 Lugares (D-222: solo se viaja a donde estuviste) siguen siendo de cada uno.
+        La llaman: _node_seen y _node_grow_mark. Si cambia, afecta: qué nodos ve cada uno en el mapa y al agrandar el campamento.
+        """
+        known = self._node_found(hero)
+        for account in self._mates(hero):
+            known |= set((self.store.get("nodes", account) or {}).get("found", []))
+        return known
+
     def _node_discover(self, hero: Hero, x: int, y: int) -> list[str]:
         """Arriving at (or standing in) a node's zone discovers what it is, for this hero and for ever (D-181).
 
@@ -13773,7 +13787,7 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         radius = self.content.balance["map_view"]["radius"]
         hint = int(cfg.get("hint_radius", 2))
         known = set(hero.known)
-        found = self._node_found(hero)
+        found = self._node_known(hero)                  # D-349: also what the guild or camp mates discovered
         out: list[tuple[int, int, str | None]] = []
         for dx in range(-radius, radius + 1):
             for dy in range(-radius, radius + 1):
@@ -13830,7 +13844,7 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
     def _node_grow_mark(self, hero: Hero, x: int, y: int) -> str:
         """⬆️ Agrandar campamento: " ✨🪵" after the resources of a zone whose node you discovered (D-87: choose with strategy)."""
         main = self._node_main(x, y)
-        if not main or f"{x}:{y}" not in self._node_found(hero):
+        if not main or f"{x}:{y}" not in self._node_known(hero):     # D-349: a mate's discovery counts
             return ""
         return self.texts.t("node.grow_mark", icon=self._node_icon(None), emoji=self.content.items[main]["emoji"])
 
