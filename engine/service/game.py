@@ -4177,8 +4177,8 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
         if not data:
             return
         inviter = Hero.from_dict(data)
-        cap = self.content.balance["energy"]["max"] * cfg["cap_factor"]
-        inviter.energy = min(cap, inviter.energy + cfg["bonus_referrer"])
+        # D-345 (bugfix): add to bonus_energy instead of current energy to increase the max cap
+        inviter.bonus_energy = getattr(inviter, "bonus_energy", 0) + cfg["bonus_referrer"]
         inviter.invites += 1
         self._save(inviter)
 
@@ -12562,7 +12562,12 @@ class GameService(StoryMixin, GuideMixin, GremioMixin, MarketMixin, MapScrollMix
                    per=self.content.balance["chain"]["energy"]["per_turn"])] if cdef.get("system") == "chain" else    # 0.31
               [t.t("stats.stamina", value=self.content.balance["combat"]["stamina_max"]),
                t.t("stats.resource", resource=t.t(f"resource.{cdef['resource']}"), value=cdef.get("resource_max", 100))]),
-            t.t("stats.energy", value=hero.energy, max=self.content.balance["energy"]["max"], per_day=self.content.balance["energy"]["per_day"]),
+            # D-345 (bugfix): max energy is base + bonus_energy, clamped by cap_factor
+        base_max = self.content.balance["energy"]["max"]
+        cfg = self.content.balance["invite"]
+        bonus = getattr(hero, "bonus_energy", 0)
+        total_max = min(base_max * cfg["cap_factor"], base_max + bonus)
+        t.t("stats.energy", value=hero.energy, max=total_max, per_day=self.content.balance["energy"]["per_day"]),
             t.t("stats.toxicity", value=self.content.balance["combat"]["toxicity_max"]),
             t.t("stats.talents_armor" if round(bonus.get("armor", 0) * 100) else "stats.talents",   # D-110: Defensa points add armor
                 attack=round(bonus.get("attack", 0) * 100), hp=round(bonus.get("hp", 0) * 100), armor=round(bonus.get("armor", 0) * 100)),
